@@ -104,13 +104,23 @@ This component enables homeowner verification through LINE Login and phone/OTP v
 </div>
 ```
 
-4. When using the script, include the pageId URL parameter to determine which survey to redirect to:
-   - `pageId=case_assessment`: For case assessment (also requires case_id parameter)
-   - `pageId=movein_assessment`: For move-in assessment
-   - `pageId=commonfee_payment`: For common fee payment
-   - `pageId=insurance_assessment`: For insurance assessment
-   - `pageId=resident_assessment`: For resident assessment
-   - `pageId=ceo`: For CEO survey (redirects to Google Form)
+4. Important Notes:
+   - The homeowner.js script requires that the user has already been authenticated via lifflogin.js
+   - lifflogin.js will store the LINE userId and name in sessionStorage, which homeowner.js will use
+   - Use the same 'page' parameter name that lifflogin.js uses (not pageId)
 
-### Example URL:
-`https://yourwebsite.com/homeowner?pageId=commonfee_payment`
+5. Supported page values:
+   - `page=case_assessment`: For case assessment (also requires case_id parameter)
+   - `page=movein_assessment`: For move-in assessment
+   - `page=commonfee_payment`: For common fee payment
+   - `page=insurance_assessment`: For insurance assessment
+   - `page=resident_assessment`: For resident assessment
+   - `page=ceo`: For CEO survey (redirects to Google Form)
+
+### Example Flow:
+1. User visits: `https://www.prinsiri.com/liff/login?page=commonfee_payment`
+2. lifflogin.js authenticates the user with LINE
+3. lifflogin.js stores userId and name in sessionStorage
+4. lifflogin.js redirects to: `https://www.prinsiri.com/liff/homeowner?page=commonfee_payment`
+5. homeowner.js verifies the user with their phone number
+6. homeowner.js redirects to the appropriate survey page

@@ -193,7 +193,20 @@ async function handleRedirect(lineuser, name) {
     
     console.log("Handling redirect with parameters:", { lineuser, name, projectid, line, page });
     
-    if (page === "walk") {
+    // Handle redirection to homeowner page for various survey types
+    if (page === "case_assessment" || page === "movein_assessment" || 
+        page === "commonfee_payment" || page === "insurance_assessment" || 
+        page === "resident_assessment" || page === "ceo") {
+        
+        // Store LINE user info in sessionStorage for the homeowner page to use
+        sessionStorage.setItem("lineUserId", lineuser);
+        sessionStorage.setItem("lineName", name);
+        
+        // Redirect to homeowner page with the same parameters
+        window.location.href = `https://www.prinsiri.com/liff/homeowner${param}`;
+    } 
+    // Handle original redirect paths
+    else if (page === "walk") {
         window.location.href = `https://www.prinsiri.com/survey/walk${param}&line_login=${lineuser}`;
     } else if (page === "walkcms") {
         window.location.href = `https://www.prinsiri.com/walk-survey/${projectid}${param}&line_login=${lineuser}`;

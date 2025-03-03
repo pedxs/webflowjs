@@ -2,10 +2,10 @@
  * LINE LIFF Homeowner Integration
  * 
  * This script is designed to be used on https://www.prinsiri.com/liff/homeowner
- * It handles the LINE login flow, phone verification, and redirects to appropriate survey pages.
+ * It handles phone verification and redirects to appropriate survey pages.
  * 
- * Requires the LIFF SDK to be included in the HTML:
- * <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+ * This script expects that the user has already been authenticated through lifflogin.js,
+ * which stores the LINE userId and name in sessionStorage.
  */
 
 // Global variables for profile information
@@ -21,46 +21,29 @@ let otpCount = 0;
 let urlObject;
 
 /**
- * Main entry function that initializes LIFF and handles user authentication
+ * Main entry function that retrieves LINE user info from sessionStorage
  */
 async function main() {
-    let inClient = false;
-
     // Step 1: Get the current URL parameters
     const queryString = window.location.search; // Includes all URL variables
-
-    // Step 2: Initialize LIFF (without `withLoginOnExternalBrowser: true`)
-    try {
-        await liff.init({ liffId: '1657411915-05zAOeOj' }); // Initialize LIFF
-        inClient = liff.isInClient(); // Check if inside LINE
-    } catch (error) {
-        console.log("Error: LIFF initialization failed.");
+    
+    // Step 2: Retrieve LINE user info from sessionStorage
+    // This info should have been set by lifflogin.js before redirecting here
+    LineUserId = sessionStorage.getItem("lineUserId");
+    Linename = sessionStorage.getItem("lineName");
+    
+    console.log("Retrieved from sessionStorage:", { LineUserId, Linename });
+    
+    // Step 3: Check if LINE user info is available
+    if (!LineUserId) {
+        console.error("LINE user ID not found in sessionStorage. Redirecting to login...");
+        // Redirect back to login page with the same parameters
+        window.location.href = `https://www.prinsiri.com/liff/login${queryString}`;
+        return { ms: "Error", error: "No LINE user ID found" };
     }
-
-    // Step 3: Log debug info
-    console.log(`Checked liff.isInClient(): ${inClient}`);
-
-    // Step 4: Try fetching the profile
-    try {
-        console.log("Attempting to fetch profile...");
-        const profile = await liff.getProfile();
-
-        // Extract user details
-        try {
-             LineUserId = profile.userId;
-             Linename = profile.displayName;
-             Linemail = liff.getDecodedIDToken().email; // Keep it as requested
-            return await CompareProfile(LineUserId, Linename, Linemail);
-        } catch (err) {
-            console.log("Error extracting user profile:", err);
-        }
-    } catch (error) {
-        console.log("Error: Failed to get profile. Redirecting to LINE app...");
-    }
-
-    // Step 5: If profile fetch failed, redirect to LINE app with URL parameters
-    console.log("Redirecting to LINE app to ensure verification...");
-    window.location.href = `line://app/1657411915-05zAOeOj${queryString}`; // Keeps URL variables
+    
+    // Step 4: If LINE user info is available, proceed with profile comparison
+    return await CompareProfile(LineUserId, Linename, Linemail || '');
 }
 
 /**
@@ -89,24 +72,24 @@ const base64url = (source) => {
 };
 
 /**
- * Redirect user to appropriate survey based on page ID
+ * Redirect user to appropriate survey based on page parameter
  */
 function redirectToSurvey(obj) {
-    let pageId = urlObject.searchParams.get("pageId");
+    let page = urlObject.searchParams.get("page");
     let nextPage = "https://www.prinsiri.com/survey/community-case?transfer="; // Default page
 
-    if (pageId === "case_assessment") {
+    if (page === "case_assessment") {
         var caseId = urlObject.searchParams.get("case_id");
         nextPage = `https://www.prinsiri.com/survey/case-assessment?case_id=${caseId}&transfer=`;
-    } else if (pageId === "movein_assessment") {
+    } else if (page === "movein_assessment") {
         nextPage = `https://www.prinsiri.com/survey/move-in?transfer=`;
-    } else if (pageId === "commonfee_payment") {
+    } else if (page === "commonfee_payment") {
         nextPage = `https://www.prinsiri.com/survey/commonfee-payment?transfer=`;
-    } else if (pageId === "insurance_assessment") {
+    } else if (page === "insurance_assessment") {
         nextPage = `https://www.prinsiri.com/survey/insurance-assessment?transfer=`;
-    } else if (pageId === "resident_assessment") {
+    } else if (page === "resident_assessment") {
         nextPage = `https://www.prinsiri.com/survey/resident-assessment?transfer=`;
-    } else if (pageId === "ceo") {
+    } else if (page === "ceo") {
         // Redirect to Google Form with only LineUserId
         const googleFormUrl = "https://docs.google.com/forms/d/e/1FAIpQLSdSpeZzmOGCeE5YgY16ambSTqwVeE-4yE378DFj-NoZOOU55Q/viewform";
         const finalUrl = `${googleFormUrl}?entry.1348731689=${encodeURIComponent(LineUserId)}`;
@@ -114,6 +97,7 @@ function redirectToSurvey(obj) {
         return; // Stop further execution
     }
 
+    console.log(`Redirecting to survey page: ${page} at URL: ${nextPage}`);
     const transferData = base64url(obj);
     const redirectUrl = nextPage + transferData;
     window.location.href = redirectUrl;
