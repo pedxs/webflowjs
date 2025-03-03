@@ -38,7 +38,7 @@ function getSessionId() {
 }
 
 // Function to log data to our backend
-async function sendRequest(queryParams) {
+async function sendRequest(queryParams, event = "page_view") {
     const backendUrl = "https://pubsub-826626291152.asia-southeast1.run.app/LiffLogin";
     try {
         // Parse the query parameters into an object
@@ -52,7 +52,16 @@ async function sendRequest(queryParams) {
         
         // Add required fields for the backend
         dataObj.payloadkey = getSessionId();
-        dataObj.payloaddatatype = "line-login";
+        
+        // Create a structured payloaddatatype as JSON object for easier filtering
+        dataObj.payloaddatatype = JSON.stringify({
+            type: event,
+            page: urlParam.get("page") || "default",
+            line: urlParam.get("line") || "",
+            hasProfile: dataObj.lineuser ? true : false,
+            timestamp: new Date().toISOString()
+        });
+        
         dataObj.timestamp = new Date().toISOString();
         
         // Make the POST request to the backend
@@ -81,7 +90,7 @@ async function lifflogin() {
     console.log(`Current URL Parameters: ${param}`);
     
     // Log initial page load - this is the only general event we log
-    await sendRequest(`${param}&event=page_load&agent=${userAgent}&isDesktop=${isDesktop}`);
+    await sendRequest(`${param}&agent=${userAgent}&isDesktop=${isDesktop}`, "page_load");
 
     // Step 1A: If desktop, restore UTM parameters **before overriding `urlParam`**
     if (isDesktop && urlParam.has("liffRedirectUri")) {
@@ -121,8 +130,8 @@ async function lifflogin() {
         console.log("✅ Profile fetched successfully:", profile);
         
         // Send the profile data to the backend
-        const profileData = `${param}&event=profile_data&lineuser=${profile.userId}&name=${profile.displayName}&agent=${userAgent}&isDesktop=${isDesktop}`;
-        await sendRequest(profileData);
+        const profileData = `${param}&lineuser=${profile.userId}&name=${profile.displayName}&agent=${userAgent}&isDesktop=${isDesktop}&pictureUrl=${profile.pictureUrl || ''}&statusMessage=${encodeURIComponent(profile.statusMessage || '')}`;
+        await sendRequest(profileData, "profile_success");
         
         // Handle the redirect separately
         handleRedirect(profile.userId, profile.displayName);
