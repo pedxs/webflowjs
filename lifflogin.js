@@ -1,3 +1,10 @@
+/**
+ * LINE LIFF Login Integration
+ * 
+ * This script is designed to be used on https://www.prinsiri.com/liff/login
+ * It handles the LINE login flow and redirects users based on URL parameters.
+ */
+
 // Global variables
 const userAgent = navigator.userAgent.toLowerCase();  
 const liffId = '1657411915-nDO8alaM';  
@@ -13,25 +20,68 @@ function setTimer() {
     }, 7000); 
 }
 
-// Function to log data to Apps Script
+// Function to get or create a session ID
+function getSessionId() {
+    // Try to get the existing session ID
+    let sessionId = sessionStorage.getItem('lineLoginSessionId');
+    
+    // If no session ID exists, create a new one
+    if (!sessionId) {
+        sessionId = 'session-' + Date.now() + '-' + Math.random().toString(36).substring(2, 10);
+        sessionStorage.setItem('lineLoginSessionId', sessionId);
+        console.log('Created new session ID:', sessionId);
+    } else {
+        console.log('Using existing session ID:', sessionId);
+    }
+    
+    return sessionId;
+}
+
+// Function to log data to our backend
 async function sendRequest(queryParams) {
-    const url = "https://script.google.com/macros/s/AKfycbyNk2BSfGFZ6smoldTElGWmvJsnP1-tuRycUAmmbe8Q9oHR0dU04-EU5szmJl8MZhwt/exec";
+    const backendUrl = "https://pubsub-826626291152.asia-southeast1.run.app/line-login-logs";
     try {
-        await fetch(`${url}${queryParams}`, {
-            mode: 'no-cors' 
+        // Parse the query parameters into an object
+        const urlParams = new URLSearchParams(queryParams);
+        const dataObj = {};
+        
+        // Convert URL parameters to a proper JSON object
+        for (const [key, value] of urlParams.entries()) {
+            dataObj[key] = value;
+        }
+        
+        // Add required fields for the backend
+        dataObj.payloadkey = getSessionId();
+        dataObj.payloaddatatype = "line-login";
+        dataObj.timestamp = new Date().toISOString();
+        
+        // Make the POST request to the backend
+        const response = await fetch(backendUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(dataObj)
         });
+        
+        console.log('Backend response:', response.status);
     } catch (error) {
-        console.error('Error during API call:', error);
+        console.error('Error during backend API call:', error);
     }
 }
 
 
 async function lifflogin() {
     const isDesktop = !/android|webos|iphone|ipad|ipod|blackberry|windows phone/i.test(userAgent);
+    const sessionId = getSessionId();
 
+    console.log(`Session ID: ${sessionId}`);
     console.log(`User Agent: ${userAgent}`);
     console.log(`isDesktop: ${isDesktop}`);
     console.log(`Current URL Parameters: ${param}`);
+    
+    // Log initial page load
+    await sendRequest(`${param}&event=page_load&agent=${userAgent}&isDesktop=${isDesktop}`);
 
     // Step 1A: If desktop, restore UTM parameters **before overriding `urlParam`**
     if (isDesktop && urlParam.has("liffRedirectUri")) {
@@ -58,8 +108,10 @@ async function lifflogin() {
             withLoginOnExternalBrowser: isDesktop // Use external browser login on PC/laptop
         }); 
         console.log("✅ LIFF initialized successfully.");
+        await sendRequest(`${param}&event=liff_init_success&agent=${userAgent}&isDesktop=${isDesktop}`);
     } catch (error) {
         console.error("❌ Error: LIFF initialization failed.", error);
+        await sendRequest(`${param}&event=liff_init_error&agent=${userAgent}&isDesktop=${isDesktop}&error=${error.message}`);
         return; // Exit if LIFF fails to initialize
     }
 
@@ -69,10 +121,12 @@ async function lifflogin() {
     try {
         profile = await liff.getProfile();
         console.log("✅ Profile fetched successfully:", profile);
+        await sendRequest(`${param}&event=profile_fetch_success&agent=${userAgent}&isDesktop=${isDesktop}`);
         sendProfileAndRedirect(profile.userId, profile.displayName);
         return; // Exit after success
     } catch (error) {
         console.error("❌ Error: Failed to get profile. Error details:", error);
+        await sendRequest(`${param}&event=profile_fetch_error&agent=${userAgent}&isDesktop=${isDesktop}&error=${error.message}`);
     }
 
     // Step 4: If profile fetch failed, send request before handling login
