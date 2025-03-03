@@ -56,13 +56,11 @@ async function sendRequest(queryParams, event = "page_view") {
         // Add required fields for the backend
         dataObj.payloadkey = getSessionId();
         
-        // Create a structured payloaddatatype as JSON object for easier filtering
+        // Create a concise payloaddatatype for BI filtering
         dataObj.payloaddatatype = JSON.stringify({
             type: event,
             page: urlParam.get("page") || "default",
-            line: urlParam.get("line") || "",
-            hasProfile: dataObj.lineuser ? true : false,
-            timestamp: new Date().toISOString()
+            line: urlParam.get("line") || ""
         });
         
         dataObj.timestamp = new Date().toISOString();
