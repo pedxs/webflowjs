@@ -3,32 +3,10 @@
  * 
  * This script is designed to be used on https://www.prinsiri.com/liff/login
  * It handles the LINE login flow and redirects users based on URL parameters.
+ * 
+ * Requires the LIFF SDK to be included in the HTML:
+ * <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
  */
-
-// Dynamically load the LIFF SDK
-function loadLiffSDK() {
-    return new Promise((resolve, reject) => {
-        // Check if LIFF SDK is already loaded
-        if (window.liff) {
-            console.log("LIFF SDK already loaded");
-            resolve();
-            return;
-        }
-
-        const script = document.createElement('script');
-        script.charset = 'utf-8';
-        script.src = 'https://static.line-scdn.net/liff/edge/2/sdk.js';
-        script.onload = () => {
-            console.log("LIFF SDK loaded successfully");
-            resolve();
-        };
-        script.onerror = (error) => {
-            console.error("Failed to load LIFF SDK", error);
-            reject(error);
-        };
-        document.head.appendChild(script);
-    });
-}
 
 // Global variables
 const userAgent = navigator.userAgent.toLowerCase();  
@@ -139,13 +117,13 @@ async function lifflogin() {
         }
     }
 
-    // Step 2: Load and initialize LIFF
+    // Step 2: Initialize LIFF
     try {
-        // First, dynamically load the LIFF SDK
-        console.log("Loading LIFF SDK...");
-        await loadLiffSDK();
+        // Check if LIFF SDK is loaded
+        if (typeof liff === 'undefined') {
+            throw new Error("LIFF SDK not found. Make sure to include the LINE LIFF SDK in your HTML.");
+        }
         
-        // Then initialize it
         console.log("Initializing LIFF...");
         await liff.init({ 
             liffId: liffId, 
