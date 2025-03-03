@@ -1,6 +1,6 @@
 // Global variables
 const userAgent = navigator.userAgent.toLowerCase();  
-const liffId = '1657411915-yXM2717V';  
+const liffId = '1657411915-nDO8alaM';  
 let param = window.location.search;  
 let urlParam = new URLSearchParams(param); // Defined once at the top
 
