@@ -68,12 +68,15 @@ async function sendRequest(queryParams, event = "page_view") {
         dataObj.timestamp = new Date().toISOString();
         
         try {
-            // Make the POST request to the backend
+            // Make the POST request to the backend with proper CORS settings
             const response = await fetch(backendUrl, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
                 },
+                mode: 'cors', // Explicitly set CORS mode
+                credentials: 'omit', // Don't send cookies
                 body: JSON.stringify(dataObj)
             });
             
