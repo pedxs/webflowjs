@@ -80,7 +80,7 @@ async function lifflogin() {
     console.log(`isDesktop: ${isDesktop}`);
     console.log(`Current URL Parameters: ${param}`);
     
-    // Log initial page load
+    // Log initial page load - this is the only general event we log
     await sendRequest(`${param}&event=page_load&agent=${userAgent}&isDesktop=${isDesktop}`);
 
     // Step 1A: If desktop, restore UTM parameters **before overriding `urlParam`**
@@ -108,10 +108,8 @@ async function lifflogin() {
             withLoginOnExternalBrowser: isDesktop // Use external browser login on PC/laptop
         }); 
         console.log("✅ LIFF initialized successfully.");
-        await sendRequest(`${param}&event=liff_init_success&agent=${userAgent}&isDesktop=${isDesktop}`);
     } catch (error) {
         console.error("❌ Error: LIFF initialization failed.", error);
-        await sendRequest(`${param}&event=liff_init_error&agent=${userAgent}&isDesktop=${isDesktop}&error=${error.message}`);
         return; // Exit if LIFF fails to initialize
     }
 
@@ -121,19 +119,22 @@ async function lifflogin() {
     try {
         profile = await liff.getProfile();
         console.log("✅ Profile fetched successfully:", profile);
-        await sendRequest(`${param}&event=profile_fetch_success&agent=${userAgent}&isDesktop=${isDesktop}`);
-        sendProfileAndRedirect(profile.userId, profile.displayName);
+        
+        // Send the profile data to the backend
+        const profileData = `${param}&event=profile_data&lineuser=${profile.userId}&name=${profile.displayName}&agent=${userAgent}&isDesktop=${isDesktop}`;
+        await sendRequest(profileData);
+        
+        // Handle the redirect separately
+        handleRedirect(profile.userId, profile.displayName);
         return; // Exit after success
     } catch (error) {
         console.error("❌ Error: Failed to get profile. Error details:", error);
-        await sendRequest(`${param}&event=profile_fetch_error&agent=${userAgent}&isDesktop=${isDesktop}&error=${error.message}`);
     }
 
-    // Step 4: If profile fetch failed, send request before handling login
+    // Step 4: If profile fetch failed, handle login fallback
     const line = urlParam.get("line");
     if (line && line.trim() !== "") {
-        const queryString = `${param}&agent=inclient-${isDesktop}&line=${line}`;
-        await sendRequest(queryString);
+        console.log("Handling login fallback for LINE client");
     }
 
     // Step 7: Handle login failure (Desktop → Logout & Re-login, Mobile → Redirect to LINE App)
@@ -154,12 +155,15 @@ async function lifflogin() {
 
 
 
-// Function to send profile data and handle redirection
-async function sendProfileAndRedirect(lineuser, name) {
+// Function to handle redirection based on URL parameters
+async function handleRedirect(lineuser, name) {
     const projectid = urlParam.get("projectid");  
     const line = urlParam.get("line");
     const page = urlParam.get("page");
     let param = `?${urlParam.toString()}`;
+    
+    console.log("Handling redirect with parameters:", { lineuser, name, projectid, line, page });
+    
     if (page === "walk") {
         window.location.href = `https://www.prinsiri.com/survey/walk${param}&line_login=${lineuser}`;
     } else if (page === "walkcms") {
@@ -167,7 +171,6 @@ async function sendProfileAndRedirect(lineuser, name) {
     } else if (page === "assessment") {
         window.location.href = `https://www.prinsiri.com/survey/guard-house-and-assessment${param}&userid=${lineuser}`;
     } else if (line && line.trim() !== "") {
-        await sendRequest(`${param}&lineuser=${lineuser}&name=${name}&agent=${userAgent}&line=${line}`);
         window.location.href = "https://lin.ee/" + line;
     } else {
         console.error('Missing or empty "line" parameter in the URL');
