@@ -5,6 +5,31 @@
  * It handles the LINE login flow and redirects users based on URL parameters.
  */
 
+// Dynamically load the LIFF SDK
+function loadLiffSDK() {
+    return new Promise((resolve, reject) => {
+        // Check if LIFF SDK is already loaded
+        if (window.liff) {
+            console.log("LIFF SDK already loaded");
+            resolve();
+            return;
+        }
+
+        const script = document.createElement('script');
+        script.charset = 'utf-8';
+        script.src = 'https://static.line-scdn.net/liff/edge/2/sdk.js';
+        script.onload = () => {
+            console.log("LIFF SDK loaded successfully");
+            resolve();
+        };
+        script.onerror = (error) => {
+            console.error("Failed to load LIFF SDK", error);
+            reject(error);
+        };
+        document.head.appendChild(script);
+    });
+}
+
 // Global variables
 const userAgent = navigator.userAgent.toLowerCase();  
 const liffId = '1657411915-nDO8alaM';  
@@ -64,18 +89,23 @@ async function sendRequest(queryParams, event = "page_view") {
         
         dataObj.timestamp = new Date().toISOString();
         
-        // Make the POST request to the backend
-        const response = await fetch(backendUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(dataObj)
-        });
-        
-        console.log('Backend response:', response.status);
+        try {
+            // Make the POST request to the backend
+            const response = await fetch(backendUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(dataObj)
+            });
+            
+            console.log('Backend response:', response.status);
+        } catch (fetchError) {
+            // If the backend request fails, we'll log it but continue execution
+            console.warn('Backend logging failed, but continuing execution:', fetchError);
+        }
     } catch (error) {
-        console.error('Error during backend API call:', error);
+        console.error('Error processing data for backend:', error);
     }
 }
 
@@ -109,8 +139,13 @@ async function lifflogin() {
         }
     }
 
-    // Step 2: Initialize LIFF
+    // Step 2: Load and initialize LIFF
     try {
+        // First, dynamically load the LIFF SDK
+        console.log("Loading LIFF SDK...");
+        await loadLiffSDK();
+        
+        // Then initialize it
         console.log("Initializing LIFF...");
         await liff.init({ 
             liffId: liffId, 
@@ -119,6 +154,12 @@ async function lifflogin() {
         console.log("✅ LIFF initialized successfully.");
     } catch (error) {
         console.error("❌ Error: LIFF initialization failed.", error);
+        
+        // Show the samsung_block for manual login when LIFF fails
+        document.getElementById("waiting_block").style.display = "none";
+        document.getElementById("samsung_block").style.display = "flex";
+        document.getElementById('samsung_button').href = `line://app/${liffId}${param}`;
+        
         return; // Exit if LIFF fails to initialize
     }
 
@@ -188,6 +229,15 @@ async function handleRedirect(lineuser, name) {
 
 // Event listener that runs when the page is fully loaded
 document.addEventListener("DOMContentLoaded", function() {
-    setTimer();  
-    lifflogin();
+    // Set a timer as a fallback in case loading takes too long
+    setTimer();
+    
+    // Initialize the LIFF login process
+    lifflogin().catch(error => {
+        console.error("Unhandled error in LIFF login process:", error);
+        // Make sure the fallback UI is displayed in case of any unhandled errors
+        document.getElementById("waiting_block").style.display = "none";
+        document.getElementById("samsung_block").style.display = "flex";
+        document.getElementById('samsung_button').href = `line://app/${liffId}${param}`;
+    });
 });
