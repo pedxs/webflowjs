@@ -39,7 +39,7 @@ function getSessionId() {
 
 // Function to log data to our backend
 async function sendRequest(queryParams) {
-    const backendUrl = "https://pubsub-826626291152.asia-southeast1.run.app/line-login-logs";
+    const backendUrl = "https://pubsub-826626291152.asia-southeast1.run.app/LiffLogin";
     try {
         // Parse the query parameters into an object
         const urlParams = new URLSearchParams(queryParams);
