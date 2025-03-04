@@ -27,12 +27,12 @@ jobs:
           echo "Purging jsDelivr cache for changed JavaScript files..."
           for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
             # Purge the specific file version
-            curl -X POST "https://purge.jsdelivr.net/gh/${{ github.repository }}@${{ github.sha }}/${file}"
-            echo "Purged: https://purge.jsdelivr.net/gh/${{ github.repository }}@${{ github.sha }}/${file}"
+            curl "https://purge.jsdelivr.net/gh/${{ github.repository }}@${{ github.sha }}/${file}"
+            echo "Purged: https://cdn.jsdelivr.net/gh/${{ github.repository }}@${{ github.sha }}/${file}"
             
             # Purge the latest version
-            curl -X POST "https://purge.jsdelivr.net/gh/${{ github.repository }}@latest/${file}"
-            echo "Purged: https://purge.jsdelivr.net/gh/${{ github.repository }}@latest/${file}"
+            curl "https://purge.jsdelivr.net/gh/${{ github.repository }}@latest/${file}"
+            echo "Purged: https://cdn.jsdelivr.net/gh/${{ github.repository }}@latest/${file}"
             
             # Wait a bit to avoid rate limiting
             sleep 1
@@ -40,5 +40,5 @@ jobs:
           
       - name: Purge index file (for directory listings)
         run: |
-          curl -X POST "https://purge.jsdelivr.net/gh/${{ github.repository }}/"
-          echo "Purged index: https://purge.jsdelivr.net/gh/${{ github.repository }}/"
+          curl "https://purge.jsdelivr.net/gh/${{ github.repository }}/"
+          echo "Purged index: https://cdn.jsdelivr.net/gh/${{ github.repository }}/"

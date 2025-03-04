@@ -33,12 +33,14 @@ function clearTimerAndHideFallbackUI() {
     // Clear the timer if it's still running
     if (fallbackTimer) {
         clearTimeout(fallbackTimer);
+        console.log("Cleared fallback timer");
     }
     
     // Hide fallback UI if visible
     document.getElementById("waiting_block").style.display = "none";
     if (document.getElementById("samsung_block")) {
         document.getElementById("samsung_block").style.display = "none";
+        console.log("Hidden fallback UI elements");
     }
 }
 
