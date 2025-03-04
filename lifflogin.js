@@ -231,6 +231,15 @@ async function handleRedirect(lineuser, name) {
         // Redirect to homeowner page with lineuser in URL parameter
         window.location.href = `https://www.prinsiri.com/liff/homeowner${param}&lineuser=${lineuser}`;
     } 
+    // Handle debenture page
+    else if (page === "debenture") {
+        // Store name and email in sessionStorage
+        sessionStorage.setItem("lineName", name);
+        sessionStorage.setItem("lineEmail", lineEmail || '');
+        
+        // Redirect to debenture page with lineId in URL parameter
+        window.location.href = `https://www.prinsiri.com/liff/debenture${param}&lineId=${lineuser}`;
+    }
     // Handle original redirect paths
     else if (page === "walk") {
         window.location.href = `https://www.prinsiri.com/survey/walk${param}&line_login=${lineuser}`;
