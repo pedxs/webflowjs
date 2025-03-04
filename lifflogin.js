@@ -45,16 +45,6 @@ function getSessionId() {
 async function sendRequest(dataObj = {}, event = "page_view") {
     const backendUrl = "https://pubsub-826626291152.asia-southeast1.run.app/LiffLogin";
     try {
-        // If dataObj is a string (for backward compatibility), convert it to an object
-        if (typeof dataObj === 'string') {
-            const urlParams = new URLSearchParams(dataObj);
-            const tempObj = {};
-            for (const [key, value] of urlParams.entries()) {
-                tempObj[key] = value;
-            }
-            dataObj = tempObj;
-        }
-        
         // Add required fields for the backend
         dataObj.payloadkey = getSessionId();
         
@@ -176,13 +166,12 @@ async function lifflogin() {
         sessionStorage.setItem("lineName", profile.displayName);
         sessionStorage.setItem("lineEmail", lineEmail);
         
-        // Create profile data object
+        // Create profile data object with only essential new information 
+        // (session ID from sendRequest will link this to the previous page_load event)
         const profileData = {
             lineuser: profile.userId,
             name: profile.displayName,
             email: lineEmail,
-            agent: userAgent,
-            isDesktop: isDesktop,
             pictureUrl: profile.pictureUrl || '',
             statusMessage: profile.statusMessage || ''
         };
