@@ -40,6 +40,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   
   // Function to redirect after 5 seconds
   function redirectAfterDelay() {
+    console.log("Redirecting to LINE OA in 5 seconds...");
     setTimeout(() => {
       window.location.href = "https://lin.ee/IqcBEHI";
     }, 5000); // 5000 milliseconds = 5 seconds
