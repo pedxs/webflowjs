@@ -106,7 +106,7 @@ async function lifflogin() {
 
     // Step 1A: If desktop, restore UTM parameters **before overriding `urlParam`**
     if (isDesktop && urlParam.has("liffRedirectUri")) {
-        const storedParams = localStorage.getItem("utmParams");
+        const storedParams = sessionStorage.getItem("utmParams");
         if (storedParams) {
             console.log("🔹 Detected login redirect. Restoring UTM parameters:", storedParams);
             urlParam = new URLSearchParams(storedParams); // Update the global variable
@@ -116,7 +116,7 @@ async function lifflogin() {
     // Step 1B: If desktop, store UTM parameters before LIFF initialization
     if (isDesktop) {
         if (urlParam.toString()) {
-            localStorage.setItem("utmParams", urlParam.toString());
+            sessionStorage.setItem("utmParams", urlParam.toString());
             console.log("🔹 Stored UTM parameters before login:", urlParam.toString());
         }
     }
