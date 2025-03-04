@@ -15,13 +15,31 @@ let param = window.location.search;
 let urlParam = new URLSearchParams(param); // Defined once at the top
 let lineEmail = ''; // Global variable to store LINE email
 
+// Global variable to track fallback timer
+let fallbackTimer;
+
 // Function to set timer and update UI
+// Note: "samsung_block" is a misleading name - this fallback is for any device that can't initialize LIFF
 function setTimer() {
-    setTimeout(function() {
+    fallbackTimer = setTimeout(function() {
         document.getElementById("waiting_block").style.display = "none";
         document.getElementById("samsung_block").style.display = "flex";
         document.getElementById('samsung_button').href = `line://app/${liffId}${param}`;
     }, 7000); 
+}
+
+// Function to clear timer and hide fallback UI
+function clearTimerAndHideFallbackUI() {
+    // Clear the timer if it's still running
+    if (fallbackTimer) {
+        clearTimeout(fallbackTimer);
+    }
+    
+    // Hide fallback UI if visible
+    document.getElementById("waiting_block").style.display = "none";
+    if (document.getElementById("samsung_block")) {
+        document.getElementById("samsung_block").style.display = "none";
+    }
 }
 
 // Function to get or create a session ID
@@ -178,6 +196,9 @@ async function lifflogin() {
         
         // Send directly as an object
         await sendRequest(profileData, "profile_success");
+        
+        // Clear timer and hide fallback UI before redirect
+        clearTimerAndHideFallbackUI();
         
         // Handle the redirect separately
         handleRedirect(profile.userId, profile.displayName);

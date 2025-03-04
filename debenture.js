@@ -27,6 +27,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     submitform();
     document.querySelector("#share-consent").classList.add("hidden");
     document.querySelector("#share-form2").classList.remove("hidden");
+    redirectAfterDelay();
   });
   
   document.querySelector("#share-consent-accept").addEventListener("click", (e) => {
@@ -34,7 +35,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     submitform();
     document.querySelector("#share-consent").classList.add("hidden");
     document.querySelector("#share-form2").classList.remove("hidden");
+    redirectAfterDelay();
   });
+  
+  // Function to redirect after 5 seconds
+  function redirectAfterDelay() {
+    setTimeout(() => {
+      window.location.href = "https://lin.ee/IqcBEHI";
+    }, 5000); // 5000 milliseconds = 5 seconds
+  }
 });
 
 async function generatecode() {
