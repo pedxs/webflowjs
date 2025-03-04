@@ -24,26 +24,35 @@ let urlObject;
  * Main entry function that retrieves LINE user info from sessionStorage
  */
 async function main() {
-    // Step 1: Get the current URL parameters
+    // Step 1: Get the current URL parameters and create URL object
     const queryString = window.location.search; // Includes all URL variables
+    urlObject = new URL(window.location.href);
     
-    // Step 2: Retrieve LINE user info from sessionStorage
-    // This info should have been set by lifflogin.js before redirecting here
-    LineUserId = sessionStorage.getItem("lineUserId");
-    Linename = sessionStorage.getItem("lineName");
+    // Step 2: Get LINE user ID from URL parameter (required)
+    LineUserId = urlObject.searchParams.get("lineuser");
     
-    console.log("Retrieved from sessionStorage:", { LineUserId, Linename });
+    // Get name and email from sessionStorage (optional)
+    Linename = sessionStorage.getItem("lineName") || '';
+    Linemail = sessionStorage.getItem("lineEmail") || '';
+    
+    console.log("Retrieved user info:", { 
+        LineUserId: LineUserId, 
+        Linename: Linename, 
+        Linemail: Linemail,
+        fromURL: 'lineuser',
+        fromSession: 'lineName, lineEmail'
+    });
     
     // Step 3: Check if LINE user info is available
     if (!LineUserId) {
-        console.error("LINE user ID not found in sessionStorage. Redirecting to login...");
+        console.error("LINE user ID not found in URL parameters. Redirecting to login...");
         // Redirect back to login page with the same parameters
         window.location.href = `https://www.prinsiri.com/liff/login${queryString}`;
         return { ms: "Error", error: "No LINE user ID found" };
     }
     
     // Step 4: If LINE user info is available, proceed with profile comparison
-    return await CompareProfile(LineUserId, Linename, Linemail || '');
+    return await CompareProfile(LineUserId, Linename, Linemail);
 }
 
 /**
@@ -174,9 +183,10 @@ async function checkOTP() {
  */
 document.addEventListener("DOMContentLoaded", async () => {
     try {
+        // Initialize with LINE user data and process profile
         data = await main();
-        urlObject = new URL(window.location.href);
         
+        // Handle the response based on verification status
         if (data.ms == 'Verified') {
             obj = {
                 CommonFeeId: data.commonfee,

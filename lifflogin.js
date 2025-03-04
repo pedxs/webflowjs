@@ -13,6 +13,7 @@ const userAgent = navigator.userAgent.toLowerCase();
 const liffId = '1657411915-nDO8alaM';  
 let param = window.location.search;  
 let urlParam = new URLSearchParams(param); // Defined once at the top
+let lineEmail = ''; // Global variable to store LINE email
 
 // Function to set timer and update UI
 function setTimer() {
@@ -41,16 +42,17 @@ function getSessionId() {
 }
 
 // Function to log data to our backend
-async function sendRequest(queryParams, event = "page_view") {
+async function sendRequest(dataObj = {}, event = "page_view") {
     const backendUrl = "https://pubsub-826626291152.asia-southeast1.run.app/LiffLogin";
     try {
-        // Parse the query parameters into an object
-        const urlParams = new URLSearchParams(queryParams);
-        const dataObj = {};
-        
-        // Convert URL parameters to a proper JSON object
-        for (const [key, value] of urlParams.entries()) {
-            dataObj[key] = value;
+        // If dataObj is a string (for backward compatibility), convert it to an object
+        if (typeof dataObj === 'string') {
+            const urlParams = new URLSearchParams(dataObj);
+            const tempObj = {};
+            for (const [key, value] of urlParams.entries()) {
+                tempObj[key] = value;
+            }
+            dataObj = tempObj;
         }
         
         // Add required fields for the backend
@@ -99,7 +101,18 @@ async function lifflogin() {
     console.log(`Current URL Parameters: ${param}`);
     
     // Log initial page load - this is the only general event we log
-    await sendRequest(`${param}&agent=${userAgent}&isDesktop=${isDesktop}`, "page_load");
+    // First, create a dataObj that contains all URL parameters
+    const initialDataObj = {};
+    for (const [key, value] of urlParam.entries()) {
+        initialDataObj[key] = value;
+    }
+    
+    // Add user agent and device info
+    initialDataObj.agent = userAgent;
+    initialDataObj.isDesktop = isDesktop;
+    
+    // Send the complete data object
+    await sendRequest(initialDataObj, "page_load");
 
     // Step 1A: If desktop, restore UTM parameters **before overriding `urlParam`**
     if (isDesktop && urlParam.has("liffRedirectUri")) {
@@ -146,11 +159,35 @@ async function lifflogin() {
     console.log("🔄 Attempting to fetch profile...");
     let profile = null;
     try {
+        // Get profile first
         profile = await liff.getProfile();
         console.log("✅ Profile fetched successfully:", profile);
         
-        // Send the profile data to the backend
-        const profileData = `${param}&lineuser=${profile.userId}&name=${profile.displayName}&agent=${userAgent}&isDesktop=${isDesktop}&pictureUrl=${profile.pictureUrl || ''}&statusMessage=${encodeURIComponent(profile.statusMessage || '')}`;
+        // Then try to get email from token
+        try {
+            const decodedToken = liff.getDecodedIDToken();
+            lineEmail = decodedToken.email || '';
+            console.log("✅ Email retrieved from token:", lineEmail);
+        } catch (emailError) {
+            console.warn("⚠️ Could not retrieve email:", emailError);
+        }
+        
+        // Store name and email in sessionStorage
+        sessionStorage.setItem("lineName", profile.displayName);
+        sessionStorage.setItem("lineEmail", lineEmail);
+        
+        // Create profile data object
+        const profileData = {
+            lineuser: profile.userId,
+            name: profile.displayName,
+            email: lineEmail,
+            agent: userAgent,
+            isDesktop: isDesktop,
+            pictureUrl: profile.pictureUrl || '',
+            statusMessage: profile.statusMessage || ''
+        };
+        
+        // Send directly as an object
         await sendRequest(profileData, "profile_success");
         
         // Handle the redirect separately
@@ -198,12 +235,12 @@ async function handleRedirect(lineuser, name) {
         page === "commonfee_payment" || page === "insurance_assessment" || 
         page === "resident_assessment" || page === "ceo") {
         
-        // Store LINE user info in sessionStorage for the homeowner page to use
-        sessionStorage.setItem("lineUserId", lineuser);
+        // Store name and email in sessionStorage
         sessionStorage.setItem("lineName", name);
+        sessionStorage.setItem("lineEmail", lineEmail || '');
         
-        // Redirect to homeowner page with the same parameters
-        window.location.href = `https://www.prinsiri.com/liff/homeowner${param}`;
+        // Redirect to homeowner page with lineuser in URL parameter
+        window.location.href = `https://www.prinsiri.com/liff/homeowner${param}&lineuser=${lineuser}`;
     } 
     // Handle original redirect paths
     else if (page === "walk") {
