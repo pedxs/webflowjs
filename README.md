@@ -11,7 +11,8 @@ This component enables LINE Login Integration for Webflow sites.
 - Works on both desktop and mobile devices
 - Preserves UTM parameters during authentication flow
 - Supports different redirect paths based on URL parameters
-- Fallback mechanism for Samsung and other problematic browsers
+- Fallback mechanism for devices with LIFF initialization issues
+- Automatic cache purging via GitHub Actions
 
 ### Usage:
 1. Add the LIFF SDK to your Webflow page:
@@ -21,7 +22,7 @@ This component enables LINE Login Integration for Webflow sites.
 
 2. Include the lifflogin.js script:
 ```html
-<script src="https://cdn.jsdelivr.net/gh/pedxs/webflowjs@main/lifflogin.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/pedxs/webflowjs@latest/lifflogin.js"></script>
 ```
 
 3. Add the required HTML elements:
@@ -40,7 +41,7 @@ This component enables LINE Login Integration for Webflow sites.
 
 4. When using the script, include the necessary URL parameters:
    - `line`: The LINE Official Account ID for redirect after login
-   - `page`: (Optional) Specify a specific page to redirect to after login ('walk', 'walkcms', or 'assessment')
+   - `page`: (Optional) Specify a specific page to redirect to after login ('walk', 'walkcms', 'assessment', 'debenture', etc.)
    - `projectid`: (Optional) Required when page is 'walkcms'
 
 ### Example URL:
@@ -124,3 +125,64 @@ This component enables homeowner verification through LINE Login and phone/OTP v
 4. lifflogin.js redirects to: `https://www.prinsiri.com/liff/homeowner?page=commonfee_payment`
 5. homeowner.js verifies the user with their phone number
 6. homeowner.js redirects to the appropriate survey page
+
+## Debenture LIFF Component
+
+This component provides a debenture registration form that integrates with LINE Login.
+
+### Features:
+- Uses LINE profile information from lifflogin.js
+- Auto-fills email field with LINE email if available
+- Generates unique promotion codes
+- Handles consent flow for marketing communications
+- Redirects to LINE Official Account after submission
+
+### Usage:
+1. Include the debenture.js script on your debenture page:
+```html
+<script src="https://cdn.jsdelivr.net/gh/pedxs/webflowjs@latest/debenture.js"></script>
+```
+
+2. Add the required HTML elements:
+```html
+<!-- Initial form -->
+<div id="share-form1">
+  <form>
+    <input type="text" id="name" placeholder="First Name">
+    <input type="text" id="surname" placeholder="Last Name">
+    <input type="tel" id="phone" placeholder="Phone">
+    <input type="email" id="email" placeholder="Email">
+    <button id="btn-submit">Submit</button>
+  </form>
+</div>
+
+<!-- Consent dialog -->
+<div id="share-consent" class="hidden">
+  <h3>Marketing Consent</h3>
+  <p>Do you consent to receiving marketing communications?</p>
+  <div id="code-generate"></div>
+  <button id="share-consent-accept">Yes, I consent</button>
+  <button id="share-consent-decline">No, I decline</button>
+</div>
+
+<!-- Thank you / confirmation -->
+<div id="share-form2" class="hidden">
+  <h3>Thank You!</h3>
+  <p>Your registration has been submitted.</p>
+</div>
+```
+
+3. Access via lifflogin.js by setting page=debenture:
+```
+https://www.prinsiri.com/liff/login?page=debenture
+```
+
+## Automatic Cache Purging
+
+This repository includes a GitHub Actions workflow that automatically purges the jsDelivr cache when JavaScript files are updated. This ensures that the latest versions are always available without manual intervention.
+
+The workflow:
+1. Triggers when JS files are pushed to the main branch
+2. Identifies which files were changed
+3. Sends purge requests to jsDelivr for both specific commit and @latest versions
+4. Provides logs of the purge operations

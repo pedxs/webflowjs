@@ -1,0 +1,44 @@
+name: Purge jsDelivr Cache
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '**.js'
+
+jobs:
+  purge-jsdelivr-cache:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        
+      - name: Find changed JavaScript files
+        id: changed-files
+        uses: tj-actions/changed-files@v41
+        with:
+          files: |
+            **.js
+      
+      - name: Purge jsDelivr cache for changed files
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: |
+          echo "Purging jsDelivr cache for changed JavaScript files..."
+          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
+            # Purge the specific file version
+            curl -X POST "https://purge.jsdelivr.net/gh/${{ github.repository }}@${{ github.sha }}/${file}"
+            echo "Purged: https://purge.jsdelivr.net/gh/${{ github.repository }}@${{ github.sha }}/${file}"
+            
+            # Purge the latest version
+            curl -X POST "https://purge.jsdelivr.net/gh/${{ github.repository }}@latest/${file}"
+            echo "Purged: https://purge.jsdelivr.net/gh/${{ github.repository }}@latest/${file}"
+            
+            # Wait a bit to avoid rate limiting
+            sleep 1
+          done
+          
+      - name: Purge index file (for directory listings)
+        run: |
+          curl -X POST "https://purge.jsdelivr.net/gh/${{ github.repository }}/"
+          echo "Purged index: https://purge.jsdelivr.net/gh/${{ github.repository }}/"
