@@ -38,12 +38,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     redirectAfterDelay();
   });
   
-  // Function to redirect after 5 seconds
+  // Function to redirect after 2.5 seconds
   function redirectAfterDelay() {
-    console.log("Redirecting to LINE OA in 5 seconds...");
+    console.log("Redirecting to LINE OA in 2.5 seconds...");
     setTimeout(() => {
       window.location.href = "https://lin.ee/IqcBEHI";
-    }, 5000); // 5000 milliseconds = 5 seconds
+    }, 2500); // 2500 milliseconds = 2.5 seconds
   }
 });
 
