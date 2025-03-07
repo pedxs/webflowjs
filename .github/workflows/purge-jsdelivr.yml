@@ -38,7 +38,34 @@ jobs:
             sleep 1
           done
           
-      - name: Purge index file (for directory listings)
+      - name: Purge entire repository
         run: |
-          curl "https://purge.jsdelivr.net/gh/${{ github.repository }}/"
-          echo "Purged index: https://cdn.jsdelivr.net/gh/${{ github.repository }}/"
+          # Purge the entire repository at latest tag
+          echo "Purging entire repository at @latest tag..."
+          curl -X GET "https://purge.jsdelivr.net/gh/${{ github.repository }}@latest/"
+          echo "Purged entire repository at latest tag: https://cdn.jsdelivr.net/gh/${{ github.repository }}@latest/"
+          
+          # Purge the specific commit
+          echo "Purging entire repository at specific commit..."
+          curl -X GET "https://purge.jsdelivr.net/gh/${{ github.repository }}@${{ github.sha }}/"
+          echo "Purged entire repository at commit: https://cdn.jsdelivr.net/gh/${{ github.repository }}@${{ github.sha }}/"
+          
+          # Purge the main branch
+          echo "Purging entire repository at main branch..."
+          curl -X GET "https://purge.jsdelivr.net/gh/${{ github.repository }}@main/"
+          echo "Purged entire repository at main branch: https://cdn.jsdelivr.net/gh/${{ github.repository }}@main/"
+          
+          # Purge the entire repository (no tag)
+          echo "Purging entire repository (no tag)..."
+          curl -X GET "https://purge.jsdelivr.net/gh/${{ github.repository }}/"
+          echo "Purged entire repository: https://cdn.jsdelivr.net/gh/${{ github.repository }}/"
+          
+          # Wait for CDN propagation
+          echo "Waiting 5 seconds for CDN propagation..."
+          sleep 5
+          
+          # Double check with a second purge to ensure cache is cleared
+          echo "Running second round of purges to ensure cache is cleared..."
+          curl -X GET "https://purge.jsdelivr.net/gh/${{ github.repository }}@latest/"
+          curl -X GET "https://purge.jsdelivr.net/gh/${{ github.repository }}/"
+          echo "All purge requests completed successfully."
