@@ -93,13 +93,21 @@ async function verifyProfile(LineUserId, Linename, Linemail) {
         }
         
         if (resp.status === 200) {
-            // User found and verified
-            const responseData = await resp.json();
-            console.log("Profile verification response:", responseData);
-            return { 
-                status: 200,
-                data: responseData
-            };
+            // Only attempt to parse JSON if the response is 200 OK
+            try {
+                const responseData = await resp.json();
+                console.log("Profile verification response:", responseData);
+                return { 
+                    status: 200,
+                    data: responseData
+                };
+            } catch (jsonError) {
+                console.error("Error parsing JSON response:", jsonError);
+                return { 
+                    status: 200,
+                    data: {} // Return empty object if JSON parsing fails
+                };
+            }
         }
         
         // Handle error responses
@@ -189,11 +197,18 @@ async function verifyPhone() {
         
         if (resp.status === 200) {
             // OTP sent successfully
-            const responseData = await resp.json();
-            console.log("Phone verification response:", responseData);
-            data2 = responseData; // Store for OTP verification
-            document.querySelector('#submit-otp-form').classList.remove('hidden');
-            return;
+            try {
+                const responseData = await resp.json();
+                console.log("Phone verification response:", responseData);
+                data2 = responseData; // Store for OTP verification
+                document.querySelector('#submit-otp-form').classList.remove('hidden');
+                return;
+            } catch (jsonError) {
+                console.error("Error parsing JSON response:", jsonError);
+                // If we can't parse the response, still show the OTP form
+                document.querySelector('#submit-otp-form').classList.remove('hidden');
+                return;
+            }
         }
         
         if (resp.status === 429) {
@@ -237,6 +252,15 @@ async function verifyOTP() {
         });
         
         console.log("OTP verification status:", resp.status);
+        
+        // Check if we have a text response before attempting to parse JSON
+        let responseText;
+        try {
+            responseText = await resp.text();
+            console.log("OTP verification raw response:", responseText);
+        } catch (textError) {
+            console.error("Error getting response text:", textError);
+        }
         
         // Handle response based on HTTP status code
         if (resp.status === 200) {
