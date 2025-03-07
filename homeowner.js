@@ -10,11 +10,11 @@
  * This version integrates with the new homeowner verification backend at:
  * https://homeownerverification-573852472812.asia-southeast1.run.app
  * 
- * Version: 2025-03-08 00:50
+ * Version: 2025-03-08 00:55
  */
 
 // Log version info to console to verify which version is loaded
-console.log("Homeowner.js loaded - Version: 2025-03-08 00:50 - Fixed OTP verification");
+console.log("Homeowner.js loaded - Version: 2025-03-08 00:55 - Fixed OTP submit button");
 
 // API base URL
 const API_BASE_URL = "https://homeownerverification-573852472812.asia-southeast1.run.app";
@@ -387,6 +387,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
     
     document.querySelector("#submit-otp").addEventListener("click", (e) => {
+        e.preventDefault(); // Prevent the default link behavior
+        console.log("OTP submit button clicked");
         verifyOTP();
     });
 });
