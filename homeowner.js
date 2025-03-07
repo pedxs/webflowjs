@@ -56,14 +56,14 @@ async function main() {
         return { ms: "Error", error: "No LINE user ID found" };
     }
     
-    // Step 4: If LINE user info is available, proceed with profile comparison
-    return await CompareProfile(LineUserId, Linename, Linemail);
+    // Step 4: If LINE user info is available, proceed with profile verification
+    return await verifyProfile(LineUserId, Linename, Linemail);
 }
 
 /**
- * Compare and validate user profile with backend
+ * Verify user profile with backend
  */  
-async function CompareProfile(LineUserId, Linename, Linemail) {
+async function verifyProfile(LineUserId, Linename, Linemail) {
     const { userAgent } = navigator;
     const url = `${API_BASE_URL}/verify/profile`;
     
@@ -131,9 +131,9 @@ function redirectToSurvey(obj) {
 }
 
 /**
- * Send phone number for OTP verification
+ * Verify phone number and send OTP
  */
-async function sendPhone() { 
+async function verifyPhone() { 
     document.querySelector('#submit-phone-form').classList.add('hidden');
     var Phone = document.querySelector("#regis_phone").value;
     var url = `${API_BASE_URL}/verify/phone`;
@@ -168,9 +168,9 @@ async function sendPhone() {
 }
 
 /**
- * Check OTP and proceed if valid
+ * Verify OTP with backend
  */
-async function checkOTP() {
+async function verifyOTP() {
     var inputOTP = document.querySelector("#regis_otp").value;
     var Phone = document.querySelector("#regis_phone").value;
     
@@ -259,10 +259,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Add event listeners
     document.querySelector("#submit-phone-form").addEventListener("submit", (e) => {
         e.preventDefault();
-        sendPhone();
+        verifyPhone();
     });
     
     document.querySelector("#submit-otp").addEventListener("click", (e) => {
-        checkOTP();
+        verifyOTP();
     });
 });
