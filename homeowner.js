@@ -9,7 +9,12 @@
  * 
  * This version integrates with the new homeowner verification backend at:
  * https://homeownerverification-573852472812.asia-southeast1.run.app
+ * 
+ * Version: 6c7294d (2023-03-08)
  */
+
+// Log version info to console to verify which version is loaded
+console.log("Homeowner.js loaded - Version: 6c7294d - Using new verification backend");
 
 // API base URL
 const API_BASE_URL = "https://homeownerverification-573852472812.asia-southeast1.run.app";
