@@ -6,7 +6,13 @@
  * 
  * This script expects that the user has already been authenticated through lifflogin.js,
  * which stores the LINE userId and name in sessionStorage.
+ * 
+ * This version integrates with the new homeowner verification backend at:
+ * https://homeownerverification-573852472812.asia-southeast1.run.app
  */
+
+// API base URL
+const API_BASE_URL = "https://homeownerverification-573852472812.asia-southeast1.run.app";
 
 // Global variables for profile information
 let LineUserId = '';
@@ -17,7 +23,6 @@ let Linemail = '';
 let data;
 let data2;
 let obj;
-let otpCount = 0;
 let urlObject;
 
 /**
@@ -60,12 +65,25 @@ async function main() {
  */  
 async function CompareProfile(LineUserId, Linename, Linemail) {
     const { userAgent } = navigator;
-    const url = "https://script.google.com/macros/s/AKfycbwn9PdnwmUKq0hw10x8MBC2c3FOByzC86iaEJTQqeXajWy5y890AjbcnmOEYWYNS1YX/exec";
+    const url = `${API_BASE_URL}/verify/profile`;
     
     try {
-        const resp = await fetch(`${url}?LineUserId=${LineUserId}&Linename=${Linename}&Linemail=${Linemail}&agent=${userAgent}`);
+        console.log("Verifying profile with backend:", { LineUserId, Linename, Linemail });
+        const resp = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                LineUserId: LineUserId,
+                Linename: Linename,
+                Linemail: Linemail,
+                agent: userAgent
+            })
+        });
         data = await resp.json();
-        console.log(data.ms);
+        console.log("Profile verification response:", data);
         return data;
     } catch (error) {
         console.error("Error comparing profile:", error);
@@ -118,11 +136,23 @@ function redirectToSurvey(obj) {
 async function sendPhone() { 
     document.querySelector('#submit-phone-form').classList.add('hidden');
     var Phone = document.querySelector("#regis_phone").value;
-    var url = "https://script.google.com/macros/s/AKfycbzR4cl-gFbYlw3Pkkw_1lofGhaZ8ULk3VXy1SHaPjS36dyTvTD_6j9PRKRAvXPQdlp4sw/exec";
+    var url = `${API_BASE_URL}/verify/phone`;
     
     try {
-        const resp = await fetch(`${url}?LineUserId=${LineUserId}&Phone=${Phone}`);
+        console.log("Sending phone number for verification:", { LineUserId, Phone });
+        const resp = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                LineUserId: LineUserId,
+                Phone: Phone
+            })
+        });
         data2 = await resp.json();
+        console.log("Phone verification response:", data2);
         
         if (data2.ms == 'NotFound') {
             document.querySelector('#phone-not-found').classList.remove('hidden');
@@ -141,39 +171,47 @@ async function sendPhone() {
  * Check OTP and proceed if valid
  */
 async function checkOTP() {
-    otpCount += 1;
-    console.log(obj);
     var inputOTP = document.querySelector("#regis_otp").value;
+    var Phone = document.querySelector("#regis_phone").value;
     
-    if (inputOTP == data2.otp && otpCount <= 3) {
-        var Phone = document.querySelector("#regis_phone").value;
-        obj = {
-            HouseNumber: data2.housenumber,
-            PhoneNumber: Phone,
-            ProjectName: data2.project,
-            CommonFeeId: data2.commonfee,
-            lineUserId: LineUserId,
-            total1: data2.total1,
-            total2: data2.total2,
-            suffix: data2.suffix,
-            customerId: data2.customerId,
-            projectCode: data2.projectCode,
-            billerId: data2.billerId
-        };
+    // Verify OTP with backend
+    const url = `${API_BASE_URL}/verify/otp`;
+    try {
+        console.log("Verifying OTP:", { LineUserId, Phone, OTP: inputOTP });
+        const resp = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                LineUserId: LineUserId,
+                Phone: Phone,
+                OTP: inputOTP
+            })
+        });
+        const result = await resp.json();
+        console.log("OTP verification response:", result);
         
-        var url = "https://script.google.com/macros/s/AKfycbw0F3OArdiNizsQrXmFAroR8Tzoitqqic0Q4jBKuvGw3uhtKOSjTSeKfqfjYv3oXTvz/exec";
-        try {
-            fetch(`${url}?LineUserId=${LineUserId}&Phone=${Phone}&Commonfee=${data2.commonfee}&ProjectName=${data2.project}&HouseNumber=${data2.housenumber}&total1=${data2.total1}&total2=${data2.total2}&suffix=${data2.suffix}&customerId=${data2.customerId}&projectCode=${data2.projectCode}&billerId=${data2.billerId}`, 
-                { redirect: 'follow', mode: 'no-cors' });
-            redirectToSurvey(obj);
-        } catch (error) {
-            console.error("Error saving verification data:", error);
-            redirectToSurvey(obj); // Still redirect even if logging fails
+        // Handle response based on status from backend
+        if (result.success) {
+            console.log("OTP verification successful, refreshing page to enter verified path");
+            // OTP verification successful - user is now verified in backend
+            // Refresh the page to enter the verified path
+            window.location.reload();
+        } else {
+            // OTP verification failed - show error message
+            document.querySelector('#warning-otp').classList.remove('hidden');
+            
+            // If max attempts reached, show not verified message
+            if (result.status === 'MaxAttemptsReached') {
+                console.log("Maximum OTP attempts reached");
+                document.querySelector('#submit-otp-form').classList.add('hidden');
+                document.querySelector('#not-verified').classList.remove('hidden');
+            }
         }
-    } else if (otpCount <= 3) {
-        document.querySelector('#warning-otp').classList.remove('hidden');
-    } else {
-        document.querySelector('#submit-otp-form').classList.add('hidden');
+    } catch (error) {
+        console.error("Error verifying OTP:", error);
         document.querySelector('#not-verified').classList.remove('hidden');
     }
 }
