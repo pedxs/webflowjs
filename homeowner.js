@@ -82,12 +82,37 @@ async function verifyProfile(LineUserId, Linename, Linemail) {
                 agent: userAgent
             })
         });
-        data = await resp.json();
-        console.log("Profile verification response:", data);
-        return data;
+        
+        console.log("Profile verification status:", resp.status);
+        
+        // Return the HTTP status code and data (if available)
+        if (resp.status === 204) {
+            // User not found, 204 No Content
+            console.log("User not found (204 No Content)");
+            return { status: 204 };
+        }
+        
+        if (resp.status === 200) {
+            // User found and verified
+            const responseData = await resp.json();
+            console.log("Profile verification response:", responseData);
+            return { 
+                status: 200,
+                data: responseData
+            };
+        }
+        
+        // Handle error responses
+        return { 
+            status: resp.status,
+            error: `HTTP error: ${resp.status}`
+        };
     } catch (error) {
         console.error("Error comparing profile:", error);
-        return { ms: "Error", error: error.message };
+        return { 
+            status: 500,
+            error: error.message
+        };
     }
 }
 
@@ -151,16 +176,36 @@ async function verifyPhone() {
                 phone: Phone
             })
         });
-        data2 = await resp.json();
-        console.log("Phone verification response:", data2);
         
-        if (data2.ms == 'NotFound') {
+        console.log("Phone verification status:", resp.status);
+        
+        // Handle different HTTP status codes
+        if (resp.status === 204) {
+            // Phone not found
+            console.log("Phone not found (204 No Content)");
             document.querySelector('#phone-not-found').classList.remove('hidden');
-        } else if (data2.ms == 'Limit') {
-            document.querySelector('#not-verified').classList.remove('hidden');
-        } else {
-            document.querySelector('#submit-otp-form').classList.remove('hidden');
+            return;
         }
+        
+        if (resp.status === 200) {
+            // OTP sent successfully
+            const responseData = await resp.json();
+            console.log("Phone verification response:", responseData);
+            data2 = responseData; // Store for OTP verification
+            document.querySelector('#submit-otp-form').classList.remove('hidden');
+            return;
+        }
+        
+        if (resp.status === 429) {
+            // Too many attempts
+            console.log("Too many verification attempts (429 Too Many Requests)");
+            document.querySelector('#not-verified').classList.remove('hidden');
+            return;
+        }
+        
+        // Any other status is an error
+        console.error("Unexpected status:", resp.status);
+        document.querySelector('#not-verified').classList.remove('hidden');
     } catch (error) {
         console.error("Error sending phone for verification:", error);
         document.querySelector('#not-verified').classList.remove('hidden');
@@ -190,26 +235,44 @@ async function verifyOTP() {
                 otp: inputOTP
             })
         });
-        const result = await resp.json();
-        console.log("OTP verification response:", result);
         
-        // Handle response based on status from backend
-        if (result.success) {
-            console.log("OTP verification successful, refreshing page to enter verified path");
-            // OTP verification successful - user is now verified in backend
+        console.log("OTP verification status:", resp.status);
+        
+        // Handle response based on HTTP status code
+        if (resp.status === 200) {
+            // OTP verification successful
+            console.log("OTP verification successful (200 OK), refreshing page to enter verified path");
             // Refresh the page to enter the verified path
             window.location.reload();
-        } else {
-            // OTP verification failed - show error message
-            document.querySelector('#warning-otp').classList.remove('hidden');
-            
-            // If max attempts reached, show not verified message
-            if (result.status === 'MaxAttemptsReached') {
-                console.log("Maximum OTP attempts reached");
-                document.querySelector('#submit-otp-form').classList.add('hidden');
-                document.querySelector('#not-verified').classList.remove('hidden');
-            }
+            return;
         }
+        
+        if (resp.status === 204) {
+            // User or phone not found
+            console.log("User or phone not found (204 No Content)");
+            document.querySelector('#submit-otp-form').classList.add('hidden');
+            document.querySelector('#not-verified').classList.remove('hidden');
+            return;
+        }
+        
+        if (resp.status === 400) {
+            // Invalid OTP
+            console.log("Invalid OTP (400 Bad Request)");
+            document.querySelector('#warning-otp').classList.remove('hidden');
+            return;
+        }
+        
+        if (resp.status === 429) {
+            // Max attempts reached
+            console.log("Maximum OTP attempts reached (429 Too Many Requests)");
+            document.querySelector('#submit-otp-form').classList.add('hidden');
+            document.querySelector('#not-verified').classList.remove('hidden');
+            return;
+        }
+        
+        // Any other status is an error
+        console.error("Unexpected status:", resp.status);
+        document.querySelector('#not-verified').classList.remove('hidden');
     } catch (error) {
         console.error("Error verifying OTP:", error);
         document.querySelector('#not-verified').classList.remove('hidden');
@@ -222,10 +285,15 @@ async function verifyOTP() {
 document.addEventListener("DOMContentLoaded", async () => {
     try {
         // Initialize with LINE user data and process profile
-        data = await main();
+        let profileResponse = await main();
+        let isVerified = false;
         
-        // Handle the response based on verification status
-        if (data.ms == 'Verified') {
+        // Check if user verification was successful (200 OK response)
+        if (profileResponse.status === 200) {
+            isVerified = true;
+            data = profileResponse.data; // Store the response data
+            
+            // User is verified, redirect to survey
             obj = {
                 CommonFeeId: data.commonfee,
                 ProjectName: data.project,
@@ -241,7 +309,8 @@ document.addEventListener("DOMContentLoaded", async () => {
                 billerId: data.billerId
             };
             redirectToSurvey(obj);
-        } else if (data.ms == 'New') {
+        } else {
+            // User not found (204) or other error
             document.querySelector('#regis_loading').classList.add('hidden');
             document.querySelector('#submit-phone-form').classList.remove('hidden');
         }
