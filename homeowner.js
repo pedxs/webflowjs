@@ -10,11 +10,11 @@
  * This version integrates with the new homeowner verification backend at:
  * https://homeownerverification-573852472812.asia-southeast1.run.app
  * 
- * Version: 2025-03-08 00:40
+ * Version: 2025-03-08 00:45
  */
 
 // Log version info to console to verify which version is loaded
-console.log("Homeowner.js loaded - Version: 2025-03-08 00:40 - Corrected API endpoints");
+console.log("Homeowner.js loaded - Version: 2025-03-08 00:45 - Fixed phone_number parameter");
 
 // API base URL
 const API_BASE_URL = "https://homeownerverification-573852472812.asia-southeast1.run.app";
@@ -193,7 +193,7 @@ async function verifyPhone() {
             },
             body: JSON.stringify({
                 user_id: LineUserId,
-                phone: Phone
+                phone_number: Phone
             })
         });
         
@@ -258,7 +258,7 @@ async function verifyOTP() {
             },
             body: JSON.stringify({
                 user_id: LineUserId,
-                phone: Phone,
+                phone_number: Phone,
                 otp: inputOTP
             })
         });
