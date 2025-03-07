@@ -76,9 +76,9 @@ async function verifyProfile(LineUserId, Linename, Linemail) {
                 'Accept': 'application/json'
             },
             body: JSON.stringify({
-                LineUserId: LineUserId,
-                Linename: Linename,
-                Linemail: Linemail,
+                user_id: LineUserId,
+                name: Linename,
+                email: Linemail,
                 agent: userAgent
             })
         });
@@ -147,8 +147,8 @@ async function verifyPhone() {
                 'Accept': 'application/json'
             },
             body: JSON.stringify({
-                LineUserId: LineUserId,
-                Phone: Phone
+                user_id: LineUserId,
+                phone: Phone
             })
         });
         data2 = await resp.json();
@@ -185,9 +185,9 @@ async function verifyOTP() {
                 'Accept': 'application/json'
             },
             body: JSON.stringify({
-                LineUserId: LineUserId,
-                Phone: Phone,
-                OTP: inputOTP
+                user_id: LineUserId,
+                phone: Phone,
+                otp: inputOTP
             })
         });
         const result = await resp.json();
