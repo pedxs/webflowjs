@@ -10,14 +10,21 @@
  * This version integrates with the new homeowner verification backend at:
  * https://homeownerverification-573852472812.asia-southeast1.run.app
  * 
- * Version: 2025-03-08 00:30
+ * Version: 2025-03-08 00:40
  */
 
 // Log version info to console to verify which version is loaded
-console.log("Homeowner.js loaded - Version: 2025-03-08 00:30 - CDN purge test");
+console.log("Homeowner.js loaded - Version: 2025-03-08 00:40 - Corrected API endpoints");
 
 // API base URL
 const API_BASE_URL = "https://homeownerverification-573852472812.asia-southeast1.run.app";
+
+// API endpoints
+const ENDPOINTS = {
+  profile: "/check_user",          // Verify user based on LINE user ID
+  phone: "/verify_phone_number",   // Send OTP to the provided phone number
+  otp: "/verify_otp"               // Verify the OTP entered by the user
+};
 
 // Global variables for profile information
 let LineUserId = '';
@@ -70,7 +77,7 @@ async function main() {
  */  
 async function verifyProfile(LineUserId, Linename, Linemail) {
     const { userAgent } = navigator;
-    const url = `${API_BASE_URL}/verify/profile`;
+    const url = `${API_BASE_URL}${ENDPOINTS.profile}`;
     
     try {
         console.log("Verifying profile with backend:", { LineUserId, Linename, Linemail });
@@ -174,7 +181,7 @@ function redirectToSurvey(obj) {
 async function verifyPhone() { 
     document.querySelector('#submit-phone-form').classList.add('hidden');
     var Phone = document.querySelector("#regis_phone").value;
-    var url = `${API_BASE_URL}/verify/phone`;
+    var url = `${API_BASE_URL}${ENDPOINTS.phone}`;
     
     try {
         console.log("Sending phone number for verification:", { LineUserId, Phone });
@@ -240,7 +247,7 @@ async function verifyOTP() {
     var Phone = document.querySelector("#regis_phone").value;
     
     // Verify OTP with backend
-    const url = `${API_BASE_URL}/verify/otp`;
+    const url = `${API_BASE_URL}${ENDPOINTS.otp}`;
     try {
         console.log("Verifying OTP:", { LineUserId, Phone, OTP: inputOTP });
         const resp = await fetch(url, {
