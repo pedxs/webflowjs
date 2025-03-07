@@ -10,11 +10,11 @@
  * This version integrates with the new homeowner verification backend at:
  * https://homeownerverification-573852472812.asia-southeast1.run.app
  * 
- * Version: 2025-03-08 00:45
+ * Version: 2025-03-08 00:50
  */
 
 // Log version info to console to verify which version is loaded
-console.log("Homeowner.js loaded - Version: 2025-03-08 00:45 - Fixed phone_number parameter");
+console.log("Homeowner.js loaded - Version: 2025-03-08 00:50 - Fixed OTP verification");
 
 // API base URL
 const API_BASE_URL = "https://homeownerverification-573852472812.asia-southeast1.run.app";
@@ -265,22 +265,41 @@ async function verifyOTP() {
         
         console.log("OTP verification status:", resp.status);
         
-        // Check if we have a text response before attempting to parse JSON
-        let responseText;
-        try {
-            responseText = await resp.text();
-            console.log("OTP verification raw response:", responseText);
-        } catch (textError) {
-            console.error("Error getting response text:", textError);
-        }
-        
         // Handle response based on HTTP status code
         if (resp.status === 200) {
             // OTP verification successful
+            try {
+                // Clone the response to read it as JSON
+                const respClone = resp.clone();
+                const jsonData = await respClone.json();
+                console.log("OTP verification successful response:", jsonData);
+            } catch (e) {
+                console.log("Could not parse JSON response, but proceeding with reload");
+            }
+            
             console.log("OTP verification successful (200 OK), refreshing page to enter verified path");
             // Refresh the page to enter the verified path
             window.location.reload();
             return;
+        }
+        
+        // For other status codes, try to log the JSON response if possible
+        let errorData = null;
+        try {
+            // Clone the response to read it as JSON (if possible)
+            const respClone = resp.clone();
+            const text = await respClone.text();
+            console.log("OTP verification raw response:", text);
+            if (text) {
+                try {
+                    errorData = JSON.parse(text);
+                    console.log("Parsed error response:", errorData);
+                } catch (e) {
+                    console.log("Could not parse error response as JSON");
+                }
+            }
+        } catch (e) {
+            console.log("Could not read error response", e);
         }
         
         if (resp.status === 204) {
