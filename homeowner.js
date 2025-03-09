@@ -10,11 +10,11 @@
  * This version integrates with the new homeowner verification backend at:
  * https://homeownerverification-573852472812.asia-southeast1.run.app
  * 
- * Version: 2025-03-08 00:55
+ * Version: 2025-03-09 16:30
  */
 
 // Log version info to console to verify which version is loaded
-console.log("Homeowner.js loaded - Version: 2025-03-08 00:55 - Fixed OTP submit button");
+console.log("Homeowner.js loaded - Version: 2025-03-09 16:30 - Fixed OTP submit button and added loading animation");
 
 // API base URL
 const API_BASE_URL = "https://homeownerverification-573852472812.asia-southeast1.run.app";
@@ -180,6 +180,9 @@ function redirectToSurvey(obj) {
  */
 async function verifyPhone() { 
     document.querySelector('#submit-phone-form').classList.add('hidden');
+    // Show loading animation while waiting for response
+    document.querySelector('#regis_loading').classList.remove('hidden');
+    
     var Phone = document.querySelector("#regis_phone").value;
     var url = `${API_BASE_URL}${ENDPOINTS.phone}`;
     
@@ -197,6 +200,8 @@ async function verifyPhone() {
             })
         });
         
+        // Hide loading animation
+        document.querySelector('#regis_loading').classList.add('hidden');
         console.log("Phone verification status:", resp.status);
         
         // Handle different HTTP status codes
@@ -234,6 +239,8 @@ async function verifyPhone() {
         console.error("Unexpected status:", resp.status);
         document.querySelector('#not-verified').classList.remove('hidden');
     } catch (error) {
+        // Hide loading animation on error
+        document.querySelector('#regis_loading').classList.add('hidden');
         console.error("Error sending phone for verification:", error);
         document.querySelector('#not-verified').classList.remove('hidden');
     }
@@ -245,6 +252,10 @@ async function verifyPhone() {
 async function verifyOTP() {
     var inputOTP = document.querySelector("#regis_otp").value;
     var Phone = document.querySelector("#regis_phone").value;
+    
+    // Show loading while verifying OTP
+    document.querySelector('#submit-otp-form').classList.add('hidden');
+    document.querySelector('#regis_loading').classList.remove('hidden');
     
     // Verify OTP with backend
     const url = `${API_BASE_URL}${ENDPOINTS.otp}`;
@@ -262,6 +273,9 @@ async function verifyOTP() {
                 otp: inputOTP
             })
         });
+        
+        // Hide loading animation
+        document.querySelector('#regis_loading').classList.add('hidden');
         
         console.log("OTP verification status:", resp.status);
         
@@ -305,7 +319,6 @@ async function verifyOTP() {
         if (resp.status === 204) {
             // User or phone not found
             console.log("User or phone not found (204 No Content)");
-            document.querySelector('#submit-otp-form').classList.add('hidden');
             document.querySelector('#not-verified').classList.remove('hidden');
             return;
         }
@@ -313,6 +326,8 @@ async function verifyOTP() {
         if (resp.status === 400) {
             // Invalid OTP
             console.log("Invalid OTP (400 Bad Request)");
+            // Show OTP form again with warning
+            document.querySelector('#submit-otp-form').classList.remove('hidden');
             document.querySelector('#warning-otp').classList.remove('hidden');
             return;
         }
@@ -320,7 +335,6 @@ async function verifyOTP() {
         if (resp.status === 429) {
             // Max attempts reached
             console.log("Maximum OTP attempts reached (429 Too Many Requests)");
-            document.querySelector('#submit-otp-form').classList.add('hidden');
             document.querySelector('#not-verified').classList.remove('hidden');
             return;
         }
@@ -329,6 +343,8 @@ async function verifyOTP() {
         console.error("Unexpected status:", resp.status);
         document.querySelector('#not-verified').classList.remove('hidden');
     } catch (error) {
+        // Hide loading animation and show error
+        document.querySelector('#regis_loading').classList.add('hidden');
         console.error("Error verifying OTP:", error);
         document.querySelector('#not-verified').classList.remove('hidden');
     }
@@ -386,9 +402,27 @@ document.addEventListener("DOMContentLoaded", async () => {
         verifyPhone();
     });
     
-    document.querySelector("#submit-otp").addEventListener("click", (e) => {
-        e.preventDefault(); // Prevent the default link behavior
-        console.log("OTP submit button clicked");
-        verifyOTP();
-    });
+    // Fix for submit-otp button
+    const otpButton = document.querySelector("#submit-otp");
+    if (otpButton) {
+        otpButton.addEventListener("click", (e) => {
+            e.preventDefault(); // Prevent the default link behavior
+            console.log("OTP submit button clicked");
+            verifyOTP();
+        });
+        console.log("OTP submit event listener added successfully");
+    } else {
+        console.error("OTP submit button not found in DOM");
+        
+        // Try adding event listener directly to the form as a fallback
+        const otpForm = document.querySelector('#submit-otp-form form');
+        if (otpForm) {
+            otpForm.addEventListener("submit", (e) => {
+                e.preventDefault();
+                console.log("OTP form submitted");
+                verifyOTP();
+            });
+            console.log("OTP form submit event listener added as fallback");
+        }
+    }
 });
