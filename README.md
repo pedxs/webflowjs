@@ -42,7 +42,23 @@ This component enables LINE Login Integration for Webflow sites.
 4. When using the script, include the necessary URL parameters:
    - `line`: The LINE Official Account ID for redirect after login
    - `page`: (Optional) Specify a specific page to redirect to after login ('walk', 'walkcms', 'assessment', 'debenture', etc.)
-   - `projectid`: (Optional) Required when page is 'walkcms'
+   - `projectid`: (Optional) Required when page is 'walkcms' or 'walkform'
+
+### Supported Page Redirections:
+| Page Parameter | Redirects To | Description | Additional Parameters |
+|----------------|--------------|-------------|------------------------|
+| No page parameter (default) | LINE Official Account | Redirects directly to LINE OA specified by `line` parameter | line (required) |
+| `walk` | /liff/walkthrough | Community walkthrough | - |
+| `walkcms` | /liff/walkthrough-cms | Construction walkthrough | projectid |
+| `walkform` | /liff/walkthrough-form | Form-based walkthrough | projectid |
+| `assessment` | /liff/assessment | General assessment | - |
+| `debenture` | /liff/debenture | Debenture registration | - |
+| `commonfee_payment` | /liff/homeowner → /survey/commonfee-payment | Common fee payment | - |
+| `movein_assessment` | /liff/homeowner → /survey/move-in | Move-in assessment | - |
+| `case_assessment` | /liff/homeowner → /survey/case-assessment | Case assessment | case_id |
+| `insurance_assessment` | /liff/homeowner → /survey/insurance-assessment | Insurance assessment | - |
+| `resident_assessment` | /liff/homeowner → /survey/resident-assessment | Resident assessment | - |
+| `ceo` | /liff/homeowner → Google Form | CEO direct feedback | - |
 
 ### Example URL:
 `https://yourwebsite.com/login?line=12345&page=walk`
@@ -110,21 +126,27 @@ This component enables homeowner verification through LINE Login and phone/OTP v
    - lifflogin.js will store the LINE userId and name in sessionStorage, which homeowner.js will use
    - Use the same 'page' parameter name that lifflogin.js uses (not pageId)
 
-5. Supported page values:
-   - `page=case_assessment`: For case assessment (also requires case_id parameter)
-   - `page=movein_assessment`: For move-in assessment
-   - `page=commonfee_payment`: For common fee payment
-   - `page=insurance_assessment`: For insurance assessment
-   - `page=resident_assessment`: For resident assessment
-   - `page=ceo`: For CEO survey (redirects to Google Form)
+5. Supported page values and their redirection destinations:
+   | Page Parameter | Final Destination | Description | Required Parameters |
+   |----------------|------------------|-------------|---------------------|
+   | `case_assessment` | /survey/case-assessment | For individual case assessment | case_id |
+   | `movein_assessment` | /survey/move-in | For move-in assessment | - |
+   | `commonfee_payment` | /survey/commonfee-payment | For common fee payment | - |
+   | `insurance_assessment` | /survey/insurance-assessment | For insurance claims | - |
+   | `resident_assessment` | /survey/resident-assessment | For general resident satisfaction | - |
+   | `ceo` | Google Form | Direct feedback to CEO | - |
 
-### Example Flow:
+### Complete User Journey:
 1. User visits: `https://www.prinsiri.com/liff/login?page=commonfee_payment`
 2. lifflogin.js authenticates the user with LINE
 3. lifflogin.js stores userId and name in sessionStorage
-4. lifflogin.js redirects to: `https://www.prinsiri.com/liff/homeowner?page=commonfee_payment`
-5. homeowner.js verifies the user with their phone number
-6. homeowner.js redirects to the appropriate survey page
+4. lifflogin.js redirects to: `https://www.prinsiri.com/liff/homeowner?page=commonfee_payment&lineuser=[LINE_USER_ID]`
+5. homeowner.js checks if user is already verified in the backend:
+   - If verified, redirects directly to the appropriate survey page
+   - If not verified, shows phone number form for verification
+6. After phone verification, user enters OTP code
+7. Upon successful OTP verification, the page reloads and redirects to the appropriate survey page with user data
+8. The survey page receives the user data in encrypted format through the URL
 
 ## Debenture LIFF Component
 
