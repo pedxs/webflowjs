@@ -63,8 +63,9 @@ async function main() {
     // Step 3: Check if LINE user info is available
     if (!LineUserId) {
         console.error("LINE user ID not found in URL parameters. Redirecting to login...");
-        // Redirect back to login page with the same parameters
-        window.location.href = `https://www.prinsiri.com/liff/login${queryString}`;
+        // Redirect back to login page with the same parameters using relative path
+        const origin = window.location.origin;
+        window.location.href = `${origin}/liff/login${queryString}`;
         return { ms: "Error", error: "No LINE user ID found" };
     }
     
@@ -148,19 +149,20 @@ const base64url = (source) => {
  */
 function redirectToSurvey(obj) {
     let page = urlObject.searchParams.get("page");
-    let nextPage = "https://www.prinsiri.com/survey/community-case?transfer="; // Default page
+    const origin = window.location.origin;
+    let nextPage = `${origin}/survey/community-case?transfer=`; // Default page
 
     if (page === "case_assessment") {
         var caseId = urlObject.searchParams.get("case_id");
-        nextPage = `https://www.prinsiri.com/survey/case-assessment?case_id=${caseId}&transfer=`;
+        nextPage = `${origin}/survey/case-assessment?case_id=${caseId}&transfer=`;
     } else if (page === "movein_assessment") {
-        nextPage = `https://www.prinsiri.com/survey/move-in?transfer=`;
+        nextPage = `${origin}/survey/move-in?transfer=`;
     } else if (page === "commonfee_payment") {
-        nextPage = `https://www.prinsiri.com/survey/commonfee-payment?transfer=`;
+        nextPage = `${origin}/survey/commonfee-payment?transfer=`;
     } else if (page === "insurance_assessment") {
-        nextPage = `https://www.prinsiri.com/survey/insurance-assessment?transfer=`;
+        nextPage = `${origin}/survey/insurance-assessment?transfer=`;
     } else if (page === "resident_assessment") {
-        nextPage = `https://www.prinsiri.com/survey/resident-assessment?transfer=`;
+        nextPage = `${origin}/survey/resident-assessment?transfer=`;
     } else if (page === "ceo") {
         // Redirect to Google Form with only LineUserId
         const googleFormUrl = "https://docs.google.com/forms/d/e/1FAIpQLSdSpeZzmOGCeE5YgY16ambSTqwVeE-4yE378DFj-NoZOOU55Q/viewform";

@@ -242,6 +242,9 @@ async function handleRedirect(lineuser, name) {
     
     console.log("Handling redirect with parameters:", { lineuser, name, projectid, line, page });
     
+    // Get current origin to make paths relative
+    const origin = window.location.origin;
+    
     // Handle redirection to homeowner page for various survey types
     if (page === "case_assessment" || page === "movein_assessment" || 
         page === "commonfee_payment" || page === "insurance_assessment" || 
@@ -252,7 +255,7 @@ async function handleRedirect(lineuser, name) {
         sessionStorage.setItem("lineEmail", lineEmail || '');
         
         // Redirect to homeowner page with lineuser in URL parameter
-        window.location.href = `https://www.prinsiri.com/liff/homeowner${param}&lineuser=${lineuser}`;
+        window.location.href = `${origin}/liff/homeowner${param}&lineuser=${lineuser}`;
     } 
     // Handle debenture page
     else if (page === "debenture") {
@@ -261,15 +264,15 @@ async function handleRedirect(lineuser, name) {
         sessionStorage.setItem("lineEmail", lineEmail || '');
         
         // Redirect to debenture page with lineId in URL parameter
-        window.location.href = `https://www.prinsiri.com/liff/debenture${param}&lineId=${lineuser}`;
+        window.location.href = `${origin}/liff/debenture${param}&lineId=${lineuser}`;
     }
     // Handle original redirect paths
     else if (page === "walk") {
-        window.location.href = `https://www.prinsiri.com/survey/walk${param}&line_login=${lineuser}`;
+        window.location.href = `${origin}/survey/walk${param}&line_login=${lineuser}`;
     } else if (page === "walkcms") {
-        window.location.href = `https://www.prinsiri.com/walk-survey/${projectid}${param}&line_login=${lineuser}`;
+        window.location.href = `${origin}/walk-survey/${projectid}${param}&line_login=${lineuser}`;
     } else if (page === "assessment") {
-        window.location.href = `https://www.prinsiri.com/survey/guard-house-and-assessment${param}&userid=${lineuser}`;
+        window.location.href = `${origin}/survey/guard-house-and-assessment${param}&userid=${lineuser}`;
     } else if (line && line.trim() !== "") {
         window.location.href = "https://lin.ee/" + line;
     } else {
