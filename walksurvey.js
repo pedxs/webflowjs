@@ -51,6 +51,93 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.querySelector("#p5-survey-id").value = customer_id;
   
   let bpage = 1;
+  
+  // Intercept submit button clicks, not form submissions
+  // This allows the form to submit to Webflow normally, but also handles our navigation
+  
+  // For page 1
+  const page1Buttons = document.querySelector("#page1 input[type='submit'], #page1 button[type='submit']");
+  if (page1Buttons) {
+    page1Buttons.addEventListener("click", async function(e) {
+      // Don't prevent default - let form submit to Webflow
+      // But do our navigation after a slight delay
+      const formData = new FormData(document.querySelector("#page1"));
+      await sendFormDataToPubSub(1, formData);
+      
+      // Set a timeout to navigate after form is submitted
+      setTimeout(() => {
+        // First check if we're still on the same page (form didn't redirect)
+        if (!document.querySelector("#page1").classList.contains("hidden")) {
+          setButtonPage(1, "next");
+        }
+      }, 200);
+    });
+  }
+  
+  // For page 2
+  const page2Buttons = document.querySelector("#page2 input[type='submit'], #page2 button[type='submit']");
+  if (page2Buttons) {
+    page2Buttons.addEventListener("click", async function(e) {
+      const formData = new FormData(document.querySelector("#page2"));
+      await sendFormDataToPubSub(2, formData);
+      
+      setTimeout(() => {
+        if (!document.querySelector("#page2").classList.contains("hidden")) {
+          if (typeof showquestions === 'function') {
+            showquestions();
+          }
+          setButtonPage(2, "next");
+        }
+      }, 200);
+    });
+  }
+  
+  // For page 3
+  const page3Buttons = document.querySelector("#page3 input[type='submit'], #page3 button[type='submit']");
+  if (page3Buttons) {
+    page3Buttons.addEventListener("click", async function(e) {
+      const formData = new FormData(document.querySelector("#page3"));
+      await sendFormDataToPubSub(3, formData);
+      
+      setTimeout(() => {
+        if (!document.querySelector("#page3").classList.contains("hidden")) {
+          setButtonPage(3, "next");
+        }
+      }, 200);
+    });
+  }
+  
+  // For page 4
+  const page4Buttons = document.querySelector("#page4 input[type='submit'], #page4 button[type='submit']");
+  if (page4Buttons) {
+    page4Buttons.addEventListener("click", async function(e) {
+      const formData = new FormData(document.querySelector("#page4"));
+      await sendFormDataToPubSub(4, formData);
+      
+      setTimeout(() => {
+        if (!document.querySelector("#page4").classList.contains("hidden")) {
+          setButtonPage(4, "next");
+        }
+      }, 200);
+    });
+  }
+  
+  // For page 5
+  const page5Buttons = document.querySelector("#page5 input[type='submit'], #page5 button[type='submit']");
+  if (page5Buttons) {
+    page5Buttons.addEventListener("click", async function(e) {
+      const formData = new FormData(document.querySelector("#page5"));
+      await sendFormDataToPubSub(5, formData);
+      
+      setTimeout(() => {
+        if (!document.querySelector("#page5").classList.contains("hidden")) {
+          setButtonPage(5, "next");
+        }
+      }, 200);
+    });
+  }
+  
+  // Maintain backwards compatibility with original event listeners
   document.querySelector("#page1").addEventListener("submit", async (e) => { 
     e.preventDefault(); 
     await sendFormDataToPubSub(1, new FormData(document.querySelector("#page1")));
