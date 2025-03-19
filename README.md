@@ -199,6 +199,81 @@ This component provides a debenture registration form that integrates with LINE 
 https://www.prinsiri.com/liff/login?page=debenture
 ```
 
+## Walk Survey JS Component
+
+This component enables multi-page survey forms with data submission to Google Cloud Pub/Sub.
+
+### Features:
+- Multi-page survey navigation
+- Automatic generation and persistence of survey IDs
+- Thailand address autocomplete integration
+- Form data submission to Google Cloud Pub/Sub
+- Fallback mechanism for failed data submissions
+
+### Usage:
+1. Include the required libraries in your HTML:
+```html
+<!-- jQuery and Thailand autocomplete dependencies -->
+<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+<script src="https://earthchie.github.io/jquery.Thailand.js/jquery.Thailand.js/dependencies/JQL.min.js"></script>
+<script src="https://earthchie.github.io/jquery.Thailand.js/jquery.Thailand.js/dependencies/typeahead.bundle.js"></script>
+<link rel="stylesheet" href="https://earthchie.github.io/jquery.Thailand.js/jquery.Thailand.js/dist/jquery.Thailand.min.css">
+<script src="https://earthchie.github.io/jquery.Thailand.js/jquery.Thailand.js/dist/jquery.Thailand.min.js"></script>
+
+<!-- Walk Survey script -->
+<script src="https://cdn.jsdelivr.net/gh/pedxs/webflowjs@latest/walksurvey.js"></script>
+```
+
+2. Add the required HTML forms structure:
+```html
+<!-- Page 1 -->
+<form id="page1">
+  <input type="hidden" id="p1-survey-id" name="survey_id">
+  <!-- Form fields for page 1 -->
+  <button type="submit">Next</button>
+</form>
+
+<!-- Page 2 -->
+<form id="page2" class="hidden">
+  <input type="hidden" id="p2-survey-id" name="survey_id">
+  <!-- Form fields for page 2 -->
+  <button type="submit">Next</button>
+</form>
+
+<!-- Continue for pages 3-5 -->
+```
+
+3. For Thailand address autocomplete, use these field IDs:
+```html
+<!-- Work address -->
+<input id="tumbon-work" placeholder="ตำบล / แขวง">
+<input id="amphur-work" placeholder="อำเภอ / เขต">
+<input id="province-work" placeholder="จังหวัด">
+<input id="zipcode-work" placeholder="รหัสไปรษณีย์">
+
+<!-- Home address -->
+<input id="tumbon-home" placeholder="ตำบล / แขวง">
+<input id="amphur-home" placeholder="อำเภอ / เขต">
+<input id="province-home" placeholder="จังหวัด">
+<input id="zipcode-home" placeholder="รหัสไปรษณีย์">
+```
+
+4. The script will automatically:
+   - Generate and persist a unique survey ID
+   - Show/hide form pages as the user navigates
+   - Submit form data to Pub/Sub when moving between pages
+   - Handle data persistence and retries on submission failure
+
+### Available Versions:
+- Basic version (without Pub/Sub integration):
+  ```html
+  <script src="https://cdn.jsdelivr.net/gh/pedxs/webflowjs@d052a3e6cbff6bf7ff5aec9239806d42402173aa/walksurvey.js"></script>
+  ```
+- Full version (with Pub/Sub integration):
+  ```html
+  <script src="https://cdn.jsdelivr.net/gh/pedxs/webflowjs@2687fb521ae5a774e8d4c08a5a6a6a1cfd75a424/walksurvey.js"></script>
+  ```
+
 ## Automatic Cache Purging
 
 This repository includes a GitHub Actions workflow that automatically purges the jsDelivr cache when JavaScript files are updated. This ensures that the latest versions are always available without manual intervention.
