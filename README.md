@@ -6,6 +6,8 @@ A collection of JavaScript utilities for Webflow sites, including LINE LIFF inte
 
 This component enables LINE Login Integration for Webflow sites.
 
+> **Note for testing:** The UAT branch is configured to work with the test domain https://prinsiri.webflow.io/ and uses LIFF ID `1657411915-p7MDBJBd`, while production (www.prinsiri.com) uses LIFF ID `1657411915-nDO8alaM`. LIFF IDs are domain-specific.
+
 ### Features:
 - Seamless authentication with LINE accounts
 - Works on both desktop and mobile devices
