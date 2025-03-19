@@ -29,26 +29,72 @@ const setButtonPage = (apage, subject) => {
 };   
 
 document.addEventListener("DOMContentLoaded", async () => {
+  console.log("[INIT] Script initialized - DOMContentLoaded event fired");
+  
+  console.log("[INIT] Environment info:", {
+    url: window.location.href,
+    userAgent: navigator.userAgent,
+    screenSize: `${window.innerWidth}x${window.innerHeight}`,
+    timestamp: new Date().toISOString()
+  });
+  
+  // Check for jQuery and form elements
+  if (typeof $ === 'undefined') {
+    console.error("[ERROR] jQuery not loaded");
+  } else {
+    console.log("[INIT] jQuery is available");
+  }
+  
+  // Find forms to ensure they exist
+  const formElements = document.querySelectorAll("form");
+  console.log(`[INIT] Found ${formElements.length} form elements`);
+  formElements.forEach((form, index) => {
+    console.log(`[INIT] Form ${index}: id=${form.id}, class=${form.className}`);
+  });
+  
   const randomId = `surveyid_${Math.round(Math.random(10) * 1000)}${new Date().getTime()}`;
   href = window.location.href;
   urlObject = new URL(window.location.href);
-      
+  
+  console.log("[INIT] Checking for existing surveyid in URL");  
   customer_id = urlObject.searchParams.get("surveyid");  // Updated to use 'surveyid' as the parameter name
   
   if(!customer_id) {
+    console.log("[INIT] No surveyid found, generating new one");
     // Generate a new customer_id and use it directly
     customer_id = `surveyid_${Math.round(Math.random() * 1000)}${new Date().getTime()}`;
     // Update the URL with the new surveyid
     urlObject.searchParams.set("surveyid", customer_id);
     window.history.replaceState(null, '', urlObject.toString());
+    console.log(`[INIT] Generated new surveyid: ${customer_id}`);
+  } else {
+    console.log(`[INIT] Using existing surveyid: ${customer_id}`);
   }
+  
   // Call the function to ensure it's executed
-  storeCustomerData();
-  document.querySelector("#p1-survey-id").value = customer_id;
-  document.querySelector("#p2-survey-id").value = customer_id;
-  document.querySelector("#p3-survey-id").value = customer_id;
-  document.querySelector("#p4-survey-id").value = customer_id;
-  document.querySelector("#p5-survey-id").value = customer_id;
+  try {
+    console.log("[INIT] Storing customer data");
+    await storeCustomerData();
+    console.log("[INIT] Customer data stored successfully");
+  } catch (storeError) {
+    console.error("[ERROR] Failed to store customer data:", storeError);
+  }
+  
+  // Set the survey ID for all hidden fields
+  try {
+    const idFields = ["#p1-survey-id", "#p2-survey-id", "#p3-survey-id", "#p4-survey-id", "#p5-survey-id"];
+    idFields.forEach(selector => {
+      const field = document.querySelector(selector);
+      if (field) {
+        field.value = customer_id;
+        console.log(`[INIT] Set ${selector} to ${customer_id}`);
+      } else {
+        console.warn(`[WARN] Field ${selector} not found`);
+      }
+    });
+  } catch (fieldError) {
+    console.error("[ERROR] Error setting survey ID fields:", fieldError);
+  }
   
   let bpage = 1;
   
@@ -58,23 +104,40 @@ document.addEventListener("DOMContentLoaded", async () => {
   // For page 1
   const page1Buttons = document.querySelector("#page1 input[type='submit'], #page1 button[type='submit']");
   if (page1Buttons) {
+    console.log("[DEBUG] Found page 1 submit button, adding click event listener");
     page1Buttons.addEventListener("click", async function(e) {
+      console.log("[DEBUG] Page 1 submit button clicked");
+      
       // Don't prevent default - let form submit to Webflow
       // But do our navigation after a slight delay
       const page1Form = document.querySelector("#page1");
       if (page1Form && page1Form instanceof HTMLFormElement) {
-        const formData = new FormData(page1Form);
-        await sendFormDataToPubSub(1, formData);
+        console.log("[DEBUG] Found page 1 form, creating FormData");
+        try {
+          const formData = new FormData(page1Form);
+          console.log("[DEBUG] FormData created for page 1");
+          await sendFormDataToPubSub(1, formData);
+        } catch (formDataError) {
+          console.error("[ERROR] Error creating FormData for page 1:", formDataError);
+        }
+      } else {
+        console.error("[ERROR] Page 1 form not found or not an HTMLFormElement:", page1Form);
       }
       
       // Set a timeout to navigate after form is submitted
       setTimeout(() => {
+        console.log("[DEBUG] Timeout callback for page 1 navigation");
         // First check if we're still on the same page (form didn't redirect)
         if (document.querySelector("#page1") && !document.querySelector("#page1").classList.contains("hidden")) {
+          console.log("[DEBUG] Navigating to next page from page 1");
           setButtonPage(1, "next");
+        } else {
+          console.log("[DEBUG] Not navigating from page 1 - page either hidden or not found");
         }
-      }, 200);
+      }, 300); // Increased timeout for more reliability
     });
+  } else {
+    console.error("[ERROR] Could not find page 1 submit button");
   }
   
   // For page 2
@@ -252,6 +315,19 @@ async function storeCustomerData() {
 }
 
 async function sendFormDataToPubSub(pageNumber, formData) {
+  console.log(`[DEBUG] Starting sendFormDataToPubSub for page ${pageNumber}`);
+  
+  if (!formData || !(formData instanceof FormData)) {
+    console.error(`[ERROR] Invalid FormData for page ${pageNumber}`, formData);
+    return null;
+  }
+  
+  // Log all form fields
+  console.log(`[DEBUG] FormData entries for page ${pageNumber}:`);
+  for (const [key, value] of formData.entries()) {
+    console.log(`[DEBUG] - ${key}: ${value}`);
+  }
+  
   const formDataObj = {};
   
   // Convert FormData to regular object
@@ -266,10 +342,14 @@ async function sendFormDataToPubSub(pageNumber, formData) {
     ...formDataObj
   };
   
+  console.log(`[DEBUG] Prepared payload for Pub/Sub:`, payload);
+  
   // Send to Pub/Sub service
   const url = 'https://pubsub-826626291152.asia-southeast1.run.app/WalkData';
+  console.log(`[DEBUG] Sending to URL: ${url}`);
   
   try {
+    console.log(`[DEBUG] Making first fetch attempt for page ${pageNumber}`);
     const response = await fetch(url, {
       method: 'POST',
       headers: {
@@ -278,13 +358,32 @@ async function sendFormDataToPubSub(pageNumber, formData) {
       body: JSON.stringify(payload)
     });
     
-    const responseData = await response.json();
-    console.log(`Page ${pageNumber} data sent to Pub/Sub:`, responseData);
-    return responseData;
+    console.log(`[DEBUG] Fetch response status: ${response.status}`);
+    console.log(`[DEBUG] Fetch response headers:`, Object.fromEntries([...response.headers]));
+    
+    try {
+      const responseText = await response.text();
+      console.log(`[DEBUG] Raw response: ${responseText}`);
+      
+      let responseData;
+      try {
+        responseData = JSON.parse(responseText);
+        console.log(`[SUCCESS] Page ${pageNumber} data sent to Pub/Sub:`, responseData);
+        return responseData;
+      } catch (jsonError) {
+        console.error(`[ERROR] Could not parse JSON response: ${jsonError.message}`, responseText);
+        return { status: 'parsed-error', message: responseText };
+      }
+    } catch (textError) {
+      console.error(`[ERROR] Could not read response text: ${textError.message}`);
+      return { status: 'error', message: 'Could not read response' };
+    }
   } catch (error) {
-    console.error(`Error sending page ${pageNumber} data to Pub/Sub:`, error);
+    console.error(`[ERROR] Error sending page ${pageNumber} data to Pub/Sub:`, error);
+    
     // Try again once on failure
     try {
+      console.log(`[DEBUG] Making retry fetch attempt for page ${pageNumber}`);
       const response = await fetch(url, {
         method: 'POST',
         headers: {
@@ -293,12 +392,28 @@ async function sendFormDataToPubSub(pageNumber, formData) {
         body: JSON.stringify(payload)
       });
       
-      const responseData = await response.json();
-      console.log(`Retry: Page ${pageNumber} data sent to Pub/Sub:`, responseData);
-      return responseData;
+      console.log(`[DEBUG] Retry fetch response status: ${response.status}`);
+      
+      try {
+        const responseText = await response.text();
+        console.log(`[DEBUG] Raw retry response: ${responseText}`);
+        
+        let responseData;
+        try {
+          responseData = JSON.parse(responseText);
+          console.log(`[SUCCESS] Retry: Page ${pageNumber} data sent to Pub/Sub:`, responseData);
+          return responseData;
+        } catch (jsonError) {
+          console.error(`[ERROR] Could not parse JSON retry response: ${jsonError.message}`, responseText);
+          return { status: 'retry-parsed-error', message: responseText };
+        }
+      } catch (textError) {
+        console.error(`[ERROR] Could not read retry response text: ${textError.message}`);
+        return { status: 'retry-error', message: 'Could not read response' };
+      }
     } catch (retryError) {
-      console.error(`Retry also failed for page ${pageNumber}:`, retryError);
-      return null;
+      console.error(`[ERROR] Retry also failed for page ${pageNumber}:`, retryError);
+      return { status: 'critical-error', message: retryError.message };
     }
   }
 }
