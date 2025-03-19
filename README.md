@@ -42,16 +42,15 @@ This component enables LINE Login Integration for Webflow sites.
 4. When using the script, include the necessary URL parameters:
    - `line`: The LINE Official Account ID for redirect after login
    - `page`: (Optional) Specify a specific page to redirect to after login ('walk', 'walkcms', 'assessment', 'debenture', etc.)
-   - `projectid`: (Optional) Required when page is 'walkcms' or 'walkform'
+   - `projectid`: (Optional) Required when page is 'walkcms'
 
 ### Supported Page Redirections:
 | Page Parameter | Redirects To | Description | Additional Parameters |
 |----------------|--------------|-------------|------------------------|
 | No page parameter (default) | LINE Official Account | Redirects directly to LINE OA specified by `line` parameter | line (required) |
-| `walk` | /liff/walkthrough | Community walkthrough | - |
-| `walkcms` | /liff/walkthrough-cms | Construction walkthrough | projectid |
-| `walkform` | /liff/walkthrough-form | Form-based walkthrough | projectid |
-| `assessment` | /liff/assessment | General assessment | - |
+| `walk` | /survey/walk | Community walkthrough | - |
+| `walkcms` | /walk-survey/{projectid} | Construction walkthrough | projectid |
+| `assessment` | /survey/guard-house-and-assessment | General assessment | - |
 | `debenture` | /liff/debenture | Debenture registration | - |
 | `commonfee_payment` | /liff/homeowner → /survey/commonfee-payment | Common fee payment | - |
 | `movein_assessment` | /liff/homeowner → /survey/move-in | Move-in assessment | - |
@@ -137,10 +136,10 @@ This component enables homeowner verification through LINE Login and phone/OTP v
    | `ceo` | Google Form | Direct feedback to CEO | - |
 
 ### Complete User Journey:
-1. User visits: `https://www.prinsiri.com/liff/login?page=commonfee_payment`
+1. User visits: `[domain]/liff/login?page=commonfee_payment`
 2. lifflogin.js authenticates the user with LINE
 3. lifflogin.js stores userId and name in sessionStorage
-4. lifflogin.js redirects to: `https://www.prinsiri.com/liff/homeowner?page=commonfee_payment&lineuser=[LINE_USER_ID]`
+4. lifflogin.js redirects to: `[domain]/liff/homeowner?page=commonfee_payment&lineuser=[LINE_USER_ID]`
 5. homeowner.js checks if user is already verified in the backend:
    - If verified, redirects directly to the appropriate survey page
    - If not verified, shows phone number form for verification
@@ -196,7 +195,7 @@ This component provides a debenture registration form that integrates with LINE 
 
 3. Access via lifflogin.js by setting page=debenture:
 ```
-https://www.prinsiri.com/liff/login?page=debenture
+[domain]/liff/login?page=debenture
 ```
 
 ## Walk Survey JS Component
