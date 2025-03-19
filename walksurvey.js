@@ -51,14 +51,36 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.querySelector("#p5-survey-id").value = customer_id;
   
   let bpage = 1;
-  document.querySelector("#page1").addEventListener("submit", (e) => { e.preventDefault(); setButtonPage(1, "next"); });
-  document.querySelector("#page2").addEventListener("submit", (e) => { e.preventDefault(); 
+  document.querySelector("#page1").addEventListener("submit", async (e) => { 
+    e.preventDefault(); 
+    await sendFormDataToPubSub(1, new FormData(document.querySelector("#page1")));
+    setButtonPage(1, "next"); 
+  });
+  
+  document.querySelector("#page2").addEventListener("submit", async (e) => { 
+    e.preventDefault(); 
+    await sendFormDataToPubSub(2, new FormData(document.querySelector("#page2")));
     showquestions();
     setButtonPage(2, "next");
   });
-  document.querySelector("#page3").addEventListener("submit", (e) => { e.preventDefault(); setButtonPage(3, "next"); });
-  document.querySelector("#page4").addEventListener("submit", (e) => { e.preventDefault(); setButtonPage(4, "next"); });
-  document.querySelector("#page5").addEventListener("submit", (e) => { e.preventDefault(); setButtonPage(5, "next"); });
+  
+  document.querySelector("#page3").addEventListener("submit", async (e) => { 
+    e.preventDefault(); 
+    await sendFormDataToPubSub(3, new FormData(document.querySelector("#page3")));
+    setButtonPage(3, "next"); 
+  });
+  
+  document.querySelector("#page4").addEventListener("submit", async (e) => { 
+    e.preventDefault(); 
+    await sendFormDataToPubSub(4, new FormData(document.querySelector("#page4")));
+    setButtonPage(4, "next"); 
+  });
+  
+  document.querySelector("#page5").addEventListener("submit", async (e) => { 
+    e.preventDefault(); 
+    await sendFormDataToPubSub(5, new FormData(document.querySelector("#page5")));
+    setButtonPage(5, "next"); 
+  });
 });
 
 async function storeCustomerData() {
@@ -97,6 +119,58 @@ async function storeCustomerData() {
     console.log('Second data send attempt made.');
   } catch (error) {
     console.error('Error in second data send attempt:', error);
+  }
+}
+
+async function sendFormDataToPubSub(pageNumber, formData) {
+  const formDataObj = {};
+  
+  // Convert FormData to regular object
+  for (const [key, value] of formData.entries()) {
+    formDataObj[key] = value;
+  }
+  
+  // Create payload according to the API requirements
+  const payload = {
+    payloadkey: customer_id,
+    payloaddatatype: pageNumber.toString(),
+    ...formDataObj
+  };
+  
+  // Send to Pub/Sub service
+  const url = 'https://pubsub-826626291152.asia-southeast1.run.app/WalkData';
+  
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
+    
+    const responseData = await response.json();
+    console.log(`Page ${pageNumber} data sent to Pub/Sub:`, responseData);
+    return responseData;
+  } catch (error) {
+    console.error(`Error sending page ${pageNumber} data to Pub/Sub:`, error);
+    // Try again once on failure
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+      
+      const responseData = await response.json();
+      console.log(`Retry: Page ${pageNumber} data sent to Pub/Sub:`, responseData);
+      return responseData;
+    } catch (retryError) {
+      console.error(`Retry also failed for page ${pageNumber}:`, retryError);
+      return null;
+    }
   }
 }
 
