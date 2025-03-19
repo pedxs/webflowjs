@@ -61,13 +61,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     page1Buttons.addEventListener("click", async function(e) {
       // Don't prevent default - let form submit to Webflow
       // But do our navigation after a slight delay
-      const formData = new FormData(document.querySelector("#page1"));
-      await sendFormDataToPubSub(1, formData);
+      const page1Form = document.querySelector("#page1");
+      if (page1Form && page1Form instanceof HTMLFormElement) {
+        const formData = new FormData(page1Form);
+        await sendFormDataToPubSub(1, formData);
+      }
       
       // Set a timeout to navigate after form is submitted
       setTimeout(() => {
         // First check if we're still on the same page (form didn't redirect)
-        if (!document.querySelector("#page1").classList.contains("hidden")) {
+        if (document.querySelector("#page1") && !document.querySelector("#page1").classList.contains("hidden")) {
           setButtonPage(1, "next");
         }
       }, 200);
@@ -78,11 +81,14 @@ document.addEventListener("DOMContentLoaded", async () => {
   const page2Buttons = document.querySelector("#page2 input[type='submit'], #page2 button[type='submit']");
   if (page2Buttons) {
     page2Buttons.addEventListener("click", async function(e) {
-      const formData = new FormData(document.querySelector("#page2"));
-      await sendFormDataToPubSub(2, formData);
+      const page2Form = document.querySelector("#page2");
+      if (page2Form && page2Form instanceof HTMLFormElement) {
+        const formData = new FormData(page2Form);
+        await sendFormDataToPubSub(2, formData);
+      }
       
       setTimeout(() => {
-        if (!document.querySelector("#page2").classList.contains("hidden")) {
+        if (document.querySelector("#page2") && !document.querySelector("#page2").classList.contains("hidden")) {
           if (typeof showquestions === 'function') {
             showquestions();
           }
@@ -96,11 +102,14 @@ document.addEventListener("DOMContentLoaded", async () => {
   const page3Buttons = document.querySelector("#page3 input[type='submit'], #page3 button[type='submit']");
   if (page3Buttons) {
     page3Buttons.addEventListener("click", async function(e) {
-      const formData = new FormData(document.querySelector("#page3"));
-      await sendFormDataToPubSub(3, formData);
+      const page3Form = document.querySelector("#page3");
+      if (page3Form && page3Form instanceof HTMLFormElement) {
+        const formData = new FormData(page3Form);
+        await sendFormDataToPubSub(3, formData);
+      }
       
       setTimeout(() => {
-        if (!document.querySelector("#page3").classList.contains("hidden")) {
+        if (document.querySelector("#page3") && !document.querySelector("#page3").classList.contains("hidden")) {
           setButtonPage(3, "next");
         }
       }, 200);
@@ -111,11 +120,14 @@ document.addEventListener("DOMContentLoaded", async () => {
   const page4Buttons = document.querySelector("#page4 input[type='submit'], #page4 button[type='submit']");
   if (page4Buttons) {
     page4Buttons.addEventListener("click", async function(e) {
-      const formData = new FormData(document.querySelector("#page4"));
-      await sendFormDataToPubSub(4, formData);
+      const page4Form = document.querySelector("#page4");
+      if (page4Form && page4Form instanceof HTMLFormElement) {
+        const formData = new FormData(page4Form);
+        await sendFormDataToPubSub(4, formData);
+      }
       
       setTimeout(() => {
-        if (!document.querySelector("#page4").classList.contains("hidden")) {
+        if (document.querySelector("#page4") && !document.querySelector("#page4").classList.contains("hidden")) {
           setButtonPage(4, "next");
         }
       }, 200);
@@ -126,11 +138,14 @@ document.addEventListener("DOMContentLoaded", async () => {
   const page5Buttons = document.querySelector("#page5 input[type='submit'], #page5 button[type='submit']");
   if (page5Buttons) {
     page5Buttons.addEventListener("click", async function(e) {
-      const formData = new FormData(document.querySelector("#page5"));
-      await sendFormDataToPubSub(5, formData);
+      const page5Form = document.querySelector("#page5");
+      if (page5Form && page5Form instanceof HTMLFormElement) {
+        const formData = new FormData(page5Form);
+        await sendFormDataToPubSub(5, formData);
+      }
       
       setTimeout(() => {
-        if (!document.querySelector("#page5").classList.contains("hidden")) {
+        if (document.querySelector("#page5") && !document.querySelector("#page5").classList.contains("hidden")) {
           setButtonPage(5, "next");
         }
       }, 200);
@@ -138,36 +153,63 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
   
   // Maintain backwards compatibility with original event listeners
-  document.querySelector("#page1").addEventListener("submit", async (e) => { 
-    e.preventDefault(); 
-    await sendFormDataToPubSub(1, new FormData(document.querySelector("#page1")));
-    setButtonPage(1, "next"); 
-  });
+  const page1Form = document.querySelector("#page1");
+  if (page1Form) {
+    page1Form.addEventListener("submit", async (e) => { 
+      e.preventDefault(); 
+      if (page1Form instanceof HTMLFormElement) {
+        await sendFormDataToPubSub(1, new FormData(page1Form));
+      }
+      setButtonPage(1, "next"); 
+    });
+  }
   
-  document.querySelector("#page2").addEventListener("submit", async (e) => { 
-    e.preventDefault(); 
-    await sendFormDataToPubSub(2, new FormData(document.querySelector("#page2")));
-    showquestions();
-    setButtonPage(2, "next");
-  });
+  const page2Form = document.querySelector("#page2");
+  if (page2Form) {
+    page2Form.addEventListener("submit", async (e) => { 
+      e.preventDefault(); 
+      if (page2Form instanceof HTMLFormElement) {
+        await sendFormDataToPubSub(2, new FormData(page2Form));
+      }
+      if (typeof showquestions === 'function') {
+        showquestions();
+      }
+      setButtonPage(2, "next");
+    });
+  }
   
-  document.querySelector("#page3").addEventListener("submit", async (e) => { 
-    e.preventDefault(); 
-    await sendFormDataToPubSub(3, new FormData(document.querySelector("#page3")));
-    setButtonPage(3, "next"); 
-  });
+  const page3Form = document.querySelector("#page3");
+  if (page3Form) {
+    page3Form.addEventListener("submit", async (e) => { 
+      e.preventDefault(); 
+      if (page3Form instanceof HTMLFormElement) {
+        await sendFormDataToPubSub(3, new FormData(page3Form));
+      }
+      setButtonPage(3, "next"); 
+    });
+  }
   
-  document.querySelector("#page4").addEventListener("submit", async (e) => { 
-    e.preventDefault(); 
-    await sendFormDataToPubSub(4, new FormData(document.querySelector("#page4")));
-    setButtonPage(4, "next"); 
-  });
+  const page4Form = document.querySelector("#page4");
+  if (page4Form) {
+    page4Form.addEventListener("submit", async (e) => { 
+      e.preventDefault(); 
+      if (page4Form instanceof HTMLFormElement) {
+        await sendFormDataToPubSub(4, new FormData(page4Form));
+      }
+      setButtonPage(4, "next"); 
+    });
+  }
   
-  document.querySelector("#page5").addEventListener("submit", async (e) => { 
-    e.preventDefault(); 
-    await sendFormDataToPubSub(5, new FormData(document.querySelector("#page5")));
-    setButtonPage(5, "next"); 
-  });
+  const page5Form = document.querySelector("#page5");
+  if (page5Form) {
+    page5Form.addEventListener("submit", async (e) => { 
+      e.preventDefault(); 
+      if (page5Form instanceof HTMLFormElement) {
+        await sendFormDataToPubSub(5, new FormData(page5Form));
+      }
+      setButtonPage(5, "next"); 
+    });
+  }
 });
 
 async function storeCustomerData() {
