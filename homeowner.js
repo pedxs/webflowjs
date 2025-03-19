@@ -366,17 +366,17 @@ document.addEventListener("DOMContentLoaded", async () => {
             
             // User is verified, redirect to survey
             obj = {
-                CommonFeeId: data.commonfee,
-                ProjectName: data.project,
-                HouseNumber: data.housenumber,
-                PhoneNumber: data.userphone,
+                CommonFeeId: data.commonfee_id,
+                ProjectName: data.project_name__c,
+                HouseNumber: data.house_number__c,
+                PhoneNumber: data.mobilephone__c,
                 authorize: data.authorize,
                 lineUserId: LineUserId,
                 total1: data.total1,
                 total2: data.total2,
-                suffix: data.suffix,
-                customerId: data.customerId,
-                projectCode: data.projectCode,
+                suffix: data.suffix_code__c,
+                customerId: data.customer_id__c,
+                projectCode: data.project_code__c,
                 billerId: data.billerId
             };
             redirectToSurvey(obj);
