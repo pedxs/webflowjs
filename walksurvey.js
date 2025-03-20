@@ -168,6 +168,10 @@ const setButtonPage = (apage, subject) => {
 document.addEventListener("DOMContentLoaded", async () => {
   console.log("[INIT] Script initialized - DOMContentLoaded event fired");
   
+  // Initialize state variables for form interactions
+  let compared = "NO";
+  let dept = "YES";
+  
   console.log("[INIT] Environment info:", {
     url: window.location.href,
     userAgent: navigator.userAgent,
@@ -231,6 +235,56 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   } catch (fieldError) {
     console.error("[ERROR] Error setting survey ID fields:", fieldError);
+  }
+  
+  // Add interactive form behavior
+  
+  // Project comparison radio button behavior
+  const compareYesButton = document.querySelector("#compare-yes");
+  const compareNoButton = document.querySelector("#compare-no");
+  const compareDetailField = document.querySelector("#compare-detail");
+  
+  if (compareYesButton && compareNoButton && compareDetailField) {
+    console.log("[INIT] Setting up project comparison behavior");
+    
+    compareYesButton.addEventListener("click", () => {
+      compared = "YES";
+      console.log("[FORM] Project comparison - Yes selected");
+      compareDetailField.classList.remove("hidden");
+      compareDetailField.setAttribute("required", true);
+    });
+    
+    compareNoButton.addEventListener("click", () => {
+      compared = "NO";
+      console.log("[FORM] Project comparison - No selected");
+      compareDetailField.classList.add("hidden");
+      compareDetailField.removeAttribute("required");
+    });
+  } else {
+    console.log("[INIT] Project comparison elements not all found, skipping setup");
+  }
+  
+  // Debt radio button behavior
+  const debtYesButton = document.querySelector("#havedebt-yesihave");
+  const debtNoButton = document.querySelector("#havedebt-noidont");
+  const debtRangeField = document.querySelector("#dept-range");
+  
+  if (debtYesButton && debtNoButton && debtRangeField) {
+    console.log("[INIT] Setting up debt slider behavior");
+    
+    debtYesButton.addEventListener("click", () => {
+      dept = "YES";
+      console.log("[FORM] Debt - Yes selected");
+      debtRangeField.classList.remove("hidden");
+    });
+    
+    debtNoButton.addEventListener("click", () => {
+      dept = "NO";
+      console.log("[FORM] Debt - No selected");
+      debtRangeField.classList.add("hidden");
+    });
+  } else {
+    console.log("[INIT] Debt field elements not all found, skipping setup");
   }
   
   // Initialize drag-drop survey functionality
