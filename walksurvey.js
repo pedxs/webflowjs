@@ -827,12 +827,12 @@ async function sendFormDataToPubSub(pageNumber, formData) {
     },
     2: {
       'income': 'slider-single',
-      'budget': 'Slider-Single-2',
+      'budget': 'slider-single-2',
       'have_debt': 'p2-q1',
-      'debt': 'Slider-Single-6',
-      'member_family': 'Slider-Single-3',
-      'decision': 'Slider-Single-4',
-      'number_house': 'Slider-Single-5',
+      'debt': 'slider-single-6',
+      'member_family': 'slider-single-3',
+      'decision': 'slider-single-4',
+      'number_house': 'slider-single-5',
       'dragdrop_data': 'name-2'
     },
     3: {
