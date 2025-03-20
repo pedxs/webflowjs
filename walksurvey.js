@@ -101,8 +101,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Intercept submit button clicks, not form submissions
   // This allows the form to submit to Webflow normally, but also handles our navigation
   
-  // For page 1
-  const page1Buttons = document.querySelector("#page1 input[type='submit'], #page1 button[type='submit']");
+  // For page 1 - using the Webflow form IDs
+  const page1Form = document.querySelector("#wf-form-walknew1");
+  const page1Buttons = page1Form ? page1Form.querySelector("input[type='submit'], button[type='submit']") : null;
+  
   if (page1Buttons) {
     console.log("[DEBUG] Found page 1 submit button, adding click event listener");
     page1Buttons.addEventListener("click", async function(e) {
@@ -110,7 +112,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       
       // Don't prevent default - let form submit to Webflow
       // But do our navigation after a slight delay
-      const page1Form = document.querySelector("#page1");
       if (page1Form && page1Form instanceof HTMLFormElement) {
         console.log("[DEBUG] Found page 1 form, creating FormData");
         try {
@@ -127,152 +128,258 @@ document.addEventListener("DOMContentLoaded", async () => {
       // Set a timeout to navigate after form is submitted
       setTimeout(() => {
         console.log("[DEBUG] Timeout callback for page 1 navigation");
-        // First check if we're still on the same page (form didn't redirect)
-        if (document.querySelector("#page1") && !document.querySelector("#page1").classList.contains("hidden")) {
-          console.log("[DEBUG] Navigating to next page from page 1");
-          setButtonPage(1, "next");
-        } else {
-          console.log("[DEBUG] Not navigating from page 1 - page either hidden or not found");
+        // Webflow specific - hide current page and show next
+        const page1Element = document.querySelector("#page1") || document.querySelector(".page-1");
+        const page2Element = document.querySelector("#page2") || document.querySelector(".page-2");
+        
+        if (page1Element) {
+          console.log("[DEBUG] Hiding page 1");
+          page1Element.classList.add("hidden");
+          if (page1Element.style) page1Element.style.display = "none";
         }
+        
+        if (page2Element) {
+          console.log("[DEBUG] Showing page 2");
+          page2Element.classList.remove("hidden");
+          if (page2Element.style) page2Element.style.display = "block";
+        }
+        
+        setButtonPage(1, "next");
       }, 300); // Increased timeout for more reliability
     });
   } else {
     console.error("[ERROR] Could not find page 1 submit button");
   }
   
-  // For page 2
-  const page2Buttons = document.querySelector("#page2 input[type='submit'], #page2 button[type='submit']");
+  // For page 2 - using Webflow form IDs
+  const page2Form = document.querySelector("#wf-form-walknew2");
+  const page2Buttons = page2Form ? page2Form.querySelector("input[type='submit'], button[type='submit']") : null;
+  
   if (page2Buttons) {
+    console.log("[DEBUG] Found page 2 submit button, adding click event listener");
     page2Buttons.addEventListener("click", async function(e) {
-      const page2Form = document.querySelector("#page2");
+      console.log("[DEBUG] Page 2 submit button clicked");
+      
       if (page2Form && page2Form instanceof HTMLFormElement) {
-        const formData = new FormData(page2Form);
-        await sendFormDataToPubSub(2, formData);
+        console.log("[DEBUG] Found page 2 form, creating FormData");
+        try {
+          const formData = new FormData(page2Form);
+          console.log("[DEBUG] FormData created for page 2");
+          await sendFormDataToPubSub(2, formData);
+        } catch (formDataError) {
+          console.error("[ERROR] Error creating FormData for page 2:", formDataError);
+        }
+      } else {
+        console.error("[ERROR] Page 2 form not found or not an HTMLFormElement:", page2Form);
       }
       
       setTimeout(() => {
-        if (document.querySelector("#page2") && !document.querySelector("#page2").classList.contains("hidden")) {
-          if (typeof showquestions === 'function') {
-            showquestions();
-          }
-          setButtonPage(2, "next");
+        console.log("[DEBUG] Timeout callback for page 2 navigation");
+        // Webflow specific - hide current page and show next
+        const page2Element = document.querySelector("#page2") || document.querySelector(".page-2");
+        const page3Element = document.querySelector("#page3") || document.querySelector(".page-3");
+        
+        if (page2Element) {
+          console.log("[DEBUG] Hiding page 2");
+          page2Element.classList.add("hidden");
+          if (page2Element.style) page2Element.style.display = "none";
         }
-      }, 200);
+        
+        if (page3Element) {
+          console.log("[DEBUG] Showing page 3");
+          page3Element.classList.remove("hidden");
+          if (page3Element.style) page3Element.style.display = "block";
+        }
+        
+        if (typeof showquestions === 'function') {
+          console.log("[DEBUG] Calling showquestions function");
+          showquestions();
+        }
+        
+        setButtonPage(2, "next");
+      }, 300);
     });
+  } else {
+    console.error("[ERROR] Could not find page 2 submit button");
   }
   
-  // For page 3
-  const page3Buttons = document.querySelector("#page3 input[type='submit'], #page3 button[type='submit']");
-  if (page3Buttons) {
-    page3Buttons.addEventListener("click", async function(e) {
-      const page3Form = document.querySelector("#page3");
-      if (page3Form && page3Form instanceof HTMLFormElement) {
-        const formData = new FormData(page3Form);
-        await sendFormDataToPubSub(3, formData);
+  // For page 3 - using Webflow form IDs (has two possible forms)
+  const page3Form1 = document.querySelector("#wf-form-walknew31");
+  const page3Form2 = document.querySelector("#wf-form-walknew3-2");
+  
+  // Get buttons from both possible forms
+  const page3Buttons1 = page3Form1 ? page3Form1.querySelector("input[type='submit'], button[type='submit']") : null;
+  const page3Buttons2 = page3Form2 ? page3Form2.querySelector("input[type='submit'], button[type='submit']") : null;
+  
+  // Handle first form for page 3
+  if (page3Buttons1) {
+    console.log("[DEBUG] Found page 3-1 submit button, adding click event listener");
+    page3Buttons1.addEventListener("click", async function(e) {
+      console.log("[DEBUG] Page 3-1 submit button clicked");
+      
+      if (page3Form1 && page3Form1 instanceof HTMLFormElement) {
+        console.log("[DEBUG] Found page 3-1 form, creating FormData");
+        try {
+          const formData = new FormData(page3Form1);
+          console.log("[DEBUG] FormData created for page 3-1");
+          await sendFormDataToPubSub(3, formData);
+        } catch (formDataError) {
+          console.error("[ERROR] Error creating FormData for page 3-1:", formDataError);
+        }
+      } else {
+        console.error("[ERROR] Page 3-1 form not found or not an HTMLFormElement:", page3Form1);
       }
       
-      setTimeout(() => {
-        if (document.querySelector("#page3") && !document.querySelector("#page3").classList.contains("hidden")) {
-          setButtonPage(3, "next");
-        }
-      }, 200);
+      handlePage3Navigation();
     });
+  } else {
+    console.error("[ERROR] Could not find page 3-1 submit button");
   }
   
-  // For page 4
-  const page4Buttons = document.querySelector("#page4 input[type='submit'], #page4 button[type='submit']");
+  // Handle second form for page 3
+  if (page3Buttons2) {
+    console.log("[DEBUG] Found page 3-2 submit button, adding click event listener");
+    page3Buttons2.addEventListener("click", async function(e) {
+      console.log("[DEBUG] Page 3-2 submit button clicked");
+      
+      if (page3Form2 && page3Form2 instanceof HTMLFormElement) {
+        console.log("[DEBUG] Found page 3-2 form, creating FormData");
+        try {
+          const formData = new FormData(page3Form2);
+          console.log("[DEBUG] FormData created for page 3-2");
+          await sendFormDataToPubSub(3, formData);
+        } catch (formDataError) {
+          console.error("[ERROR] Error creating FormData for page 3-2:", formDataError);
+        }
+      } else {
+        console.error("[ERROR] Page 3-2 form not found or not an HTMLFormElement:", page3Form2);
+      }
+      
+      handlePage3Navigation();
+    });
+  } else {
+    console.error("[ERROR] Could not find page 3-2 submit button");
+  }
+  
+  // Common navigation function for page 3
+  function handlePage3Navigation() {
+    setTimeout(() => {
+      console.log("[DEBUG] Timeout callback for page 3 navigation");
+      // Webflow specific - hide current page and show next
+      const page3Element = document.querySelector("#page3") || document.querySelector(".page-3");
+      const page4Element = document.querySelector("#page4") || document.querySelector(".page-4");
+      
+      if (page3Element) {
+        console.log("[DEBUG] Hiding page 3");
+        page3Element.classList.add("hidden");
+        if (page3Element.style) page3Element.style.display = "none";
+      }
+      
+      if (page4Element) {
+        console.log("[DEBUG] Showing page 4");
+        page4Element.classList.remove("hidden");
+        if (page4Element.style) page4Element.style.display = "block";
+      }
+      
+      setButtonPage(3, "next");
+    }, 300);
+  }
+  
+  // For page 4 - using Webflow form IDs
+  const page4Form = document.querySelector("#wf-form-walknew4");
+  const page4Buttons = page4Form ? page4Form.querySelector("input[type='submit'], button[type='submit']") : null;
+  
   if (page4Buttons) {
+    console.log("[DEBUG] Found page 4 submit button, adding click event listener");
     page4Buttons.addEventListener("click", async function(e) {
-      const page4Form = document.querySelector("#page4");
+      console.log("[DEBUG] Page 4 submit button clicked");
+      
       if (page4Form && page4Form instanceof HTMLFormElement) {
-        const formData = new FormData(page4Form);
-        await sendFormDataToPubSub(4, formData);
+        console.log("[DEBUG] Found page 4 form, creating FormData");
+        try {
+          const formData = new FormData(page4Form);
+          console.log("[DEBUG] FormData created for page 4");
+          await sendFormDataToPubSub(4, formData);
+        } catch (formDataError) {
+          console.error("[ERROR] Error creating FormData for page 4:", formDataError);
+        }
+      } else {
+        console.error("[ERROR] Page 4 form not found or not an HTMLFormElement:", page4Form);
       }
       
       setTimeout(() => {
-        if (document.querySelector("#page4") && !document.querySelector("#page4").classList.contains("hidden")) {
-          setButtonPage(4, "next");
+        console.log("[DEBUG] Timeout callback for page 4 navigation");
+        // Webflow specific - hide current page and show next
+        const page4Element = document.querySelector("#page4") || document.querySelector(".page-4");
+        const page5Element = document.querySelector("#page5") || document.querySelector(".page-5");
+        
+        if (page4Element) {
+          console.log("[DEBUG] Hiding page 4");
+          page4Element.classList.add("hidden");
+          if (page4Element.style) page4Element.style.display = "none";
         }
-      }, 200);
+        
+        if (page5Element) {
+          console.log("[DEBUG] Showing page 5");
+          page5Element.classList.remove("hidden");
+          if (page5Element.style) page5Element.style.display = "block";
+        }
+        
+        setButtonPage(4, "next");
+      }, 300);
     });
+  } else {
+    console.error("[ERROR] Could not find page 4 submit button");
   }
   
-  // For page 5
-  const page5Buttons = document.querySelector("#page5 input[type='submit'], #page5 button[type='submit']");
+  // For page 5 - using Webflow form IDs
+  const page5Form = document.querySelector("#wf-form-walknew5");
+  const page5Buttons = page5Form ? page5Form.querySelector("input[type='submit'], button[type='submit']") : null;
+  
   if (page5Buttons) {
+    console.log("[DEBUG] Found page 5 submit button, adding click event listener");
     page5Buttons.addEventListener("click", async function(e) {
-      const page5Form = document.querySelector("#page5");
+      console.log("[DEBUG] Page 5 submit button clicked");
+      
       if (page5Form && page5Form instanceof HTMLFormElement) {
-        const formData = new FormData(page5Form);
-        await sendFormDataToPubSub(5, formData);
+        console.log("[DEBUG] Found page 5 form, creating FormData");
+        try {
+          const formData = new FormData(page5Form);
+          console.log("[DEBUG] FormData created for page 5");
+          await sendFormDataToPubSub(5, formData);
+        } catch (formDataError) {
+          console.error("[ERROR] Error creating FormData for page 5:", formDataError);
+        }
+      } else {
+        console.error("[ERROR] Page 5 form not found or not an HTMLFormElement:", page5Form);
       }
       
       setTimeout(() => {
-        if (document.querySelector("#page5") && !document.querySelector("#page5").classList.contains("hidden")) {
-          setButtonPage(5, "next");
+        console.log("[DEBUG] Timeout callback for page 5 navigation");
+        // Webflow specific - hide current page and show next
+        const page5Element = document.querySelector("#page5") || document.querySelector(".page-5");
+        const page6Element = document.querySelector("#page6") || document.querySelector(".page-6");
+        
+        if (page5Element) {
+          console.log("[DEBUG] Hiding page 5");
+          page5Element.classList.add("hidden");
+          if (page5Element.style) page5Element.style.display = "none";
         }
-      }, 200);
+        
+        if (page6Element) {
+          console.log("[DEBUG] Showing page 6");
+          page6Element.classList.remove("hidden");
+          if (page6Element.style) page6Element.style.display = "block";
+        }
+        
+        setButtonPage(5, "next");
+      }, 300);
     });
+  } else {
+    console.error("[ERROR] Could not find page 5 submit button");
   }
   
-  // Maintain backwards compatibility with original event listeners
-  const page1Form = document.querySelector("#page1");
-  if (page1Form) {
-    page1Form.addEventListener("submit", async (e) => { 
-      e.preventDefault(); 
-      if (page1Form instanceof HTMLFormElement) {
-        await sendFormDataToPubSub(1, new FormData(page1Form));
-      }
-      setButtonPage(1, "next"); 
-    });
-  }
-  
-  const page2Form = document.querySelector("#page2");
-  if (page2Form) {
-    page2Form.addEventListener("submit", async (e) => { 
-      e.preventDefault(); 
-      if (page2Form instanceof HTMLFormElement) {
-        await sendFormDataToPubSub(2, new FormData(page2Form));
-      }
-      if (typeof showquestions === 'function') {
-        showquestions();
-      }
-      setButtonPage(2, "next");
-    });
-  }
-  
-  const page3Form = document.querySelector("#page3");
-  if (page3Form) {
-    page3Form.addEventListener("submit", async (e) => { 
-      e.preventDefault(); 
-      if (page3Form instanceof HTMLFormElement) {
-        await sendFormDataToPubSub(3, new FormData(page3Form));
-      }
-      setButtonPage(3, "next"); 
-    });
-  }
-  
-  const page4Form = document.querySelector("#page4");
-  if (page4Form) {
-    page4Form.addEventListener("submit", async (e) => { 
-      e.preventDefault(); 
-      if (page4Form instanceof HTMLFormElement) {
-        await sendFormDataToPubSub(4, new FormData(page4Form));
-      }
-      setButtonPage(4, "next"); 
-    });
-  }
-  
-  const page5Form = document.querySelector("#page5");
-  if (page5Form) {
-    page5Form.addEventListener("submit", async (e) => { 
-      e.preventDefault(); 
-      if (page5Form instanceof HTMLFormElement) {
-        await sendFormDataToPubSub(5, new FormData(page5Form));
-      }
-      setButtonPage(5, "next"); 
-    });
-  }
+  // Debug elements and remove old event listeners - no longer needed with Webflow forms
 });
 
 async function storeCustomerData() {
