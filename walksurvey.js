@@ -772,14 +772,14 @@ async function sendFormDataToPubSub(pageNumber, formData) {
       'prefix': 'p1-q1'
     },
     2: {
-      'income': 'Slider Single',
-      'budget': 'Slider Single 2',
+      'income': 'slider-single',
+      'budget': 'Slider-Single-2',
       'have_debt': 'p2-q1',
-      'debt': 'Slider Single 6',
-      'member_family': 'Slider Single 3',
-      'decision': 'Slider Single 4',
-      'number_house': 'Slider Single 5',
-      'dragdrop_data': 'Name 2'
+      'debt': 'Slider-Single-6',
+      'member_family': 'Slider-Single-3',
+      'decision': 'Slider-Single-4',
+      'number_house': 'Slider-Single-5',
+      'dragdrop_data': 'name-2'
     },
     3: {
       'first_media': 'p3-q1',
