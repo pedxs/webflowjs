@@ -826,14 +826,16 @@ async function sendFormDataToPubSub(pageNumber, formData) {
       'prefix': 'p1-q1'
     },
     2: {
-      'income': 'slider-single',
-      'budget': 'slider-single-2',
-      'have_debt': 'p2-q1',
-      'debt': 'slider-single-6',
-      'member_family': 'slider-single-3',
-      'decision': 'slider-single-4',
-      'number_house': 'slider-single-5',
-      'dragdrop_data': 'name-2'
+      // LEFT SIDE: Backend field name we want to use
+      // RIGHT SIDE: Original field name from the form
+      'income': 'slider-single',         // Map slider-single → income
+      'budget': 'Slider-Single-2',       // Map Slider-Single-2 → budget
+      'have_debt': 'have_debt',          // Map have_debt → have_debt (keep same)
+      'debt': 'Slider-Single-6',         // Map Slider-Single-6 → debt
+      'member_family': 'Slider-Single-3',// Map Slider-Single-3 → member_family
+      'decision': 'Slider-Single-4',     // Map Slider-Single-4 → decision
+      'number_house': 'Slider-Single-5', // Map Slider-Single-5 → number_house
+      'dragdrop_data': 'dragdrop_data'   // Map dragdrop_data → dragdrop_data (keep same)
     },
     3: {
       'first_media': 'p3-q1',
@@ -865,16 +867,21 @@ async function sendFormDataToPubSub(pageNumber, formData) {
   for (const [key, value] of formData.entries()) {
     let newKey = key; // Default to original key
     
-    // Look for this original field name in the mapping values
+    // Look for this original field name in the mapping values - do a careful debug
+    console.log(`[DEBUG] Processing form field: "${key}" with value: "${value}"`);
+    
+    // Look for exact matches first, then case-insensitive matches
     for (const [backendKey, originalKey] of Object.entries(currentMapping)) {
       if (originalKey === key) {
         newKey = backendKey;
+        console.log(`[DEBUG] Found exact match: ${originalKey} -> ${backendKey}`);
         break;
       }
     }
     
     // Add to standardized data with the new key
     standardizedData[newKey] = value;
+    console.log(`[DEBUG] Field mapping result: "${key}" -> "${newKey}"`);
   }
   
   // Log standardized data
