@@ -165,6 +165,25 @@ const setButtonPage = (apage, subject) => {
   page = apage;
 };   
 
+// Define constants for form and page selectors
+const FORM_SELECTORS = {
+  PAGE1: "#wf-form-walknew1",
+  PAGE2: "#wf-form-walknew2",
+  PAGE3_1: "#wf-form-walknew31",     // Ignored form
+  PAGE3_2: "#wf-form-walknew3-2",    // Active form
+  PAGE4: "#wf-form-walknew4",
+  PAGE5: "#wf-form-walknew5"
+};
+
+const PAGE_SELECTORS = {
+  PAGE1: "#page1, .page-1",
+  PAGE2: "#page2, .page-2",
+  PAGE3: "#page3, .page-3",
+  PAGE4: "#page4, .page-4",
+  PAGE5: "#page5, .page-5",
+  PAGE6: "#page6, .page-6"
+};
+
 document.addEventListener("DOMContentLoaded", async () => {
   console.log("[INIT] Script initialized - DOMContentLoaded event fired");
   
@@ -213,6 +232,25 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
   
   // Call the function to ensure it's executed
+  // Function to set field values across multiple elements
+  function setFieldValues(selectors, value, fieldType = "survey ID") {
+    try {
+      selectors.forEach(selector => {
+        const field = document.querySelector(selector);
+        if (field) {
+          field.value = value;
+          console.log(`[INIT] Set ${selector} to ${value}`);
+        } else {
+          console.warn(`[WARN] ${fieldType} field ${selector} not found`);
+        }
+      });
+      return true;
+    } catch (error) {
+      console.error(`[ERROR] Error setting ${fieldType} fields:`, error);
+      return false;
+    }
+  }
+  
   try {
     console.log("[INIT] Storing customer data");
     await storeCustomerData();
@@ -222,20 +260,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
   
   // Set the survey ID for all hidden fields
-  try {
-    const idFields = ["#p1-survey-id", "#p2-survey-id", "#p3-survey-id", "#p4-survey-id", "#p5-survey-id"];
-    idFields.forEach(selector => {
-      const field = document.querySelector(selector);
-      if (field) {
-        field.value = customer_id;
-        console.log(`[INIT] Set ${selector} to ${customer_id}`);
-      } else {
-        console.warn(`[WARN] Field ${selector} not found`);
-      }
-    });
-  } catch (fieldError) {
-    console.error("[ERROR] Error setting survey ID fields:", fieldError);
-  }
+  const idFields = ["#p1-survey-id", "#p2-survey-id", "#p3-survey-id", "#p4-survey-id", "#p5-survey-id"];
+  setFieldValues(idFields, customer_id, "survey ID");
   
   // Add interactive form behavior
   
@@ -327,6 +353,47 @@ document.addEventListener("DOMContentLoaded", async () => {
   
   let bpage = 1;
   
+  // Function to navigate between pages
+  function navigateToPage(fromPage, toPage) {
+    console.log(`[DEBUG] Navigating from page ${fromPage} to page ${toPage}`);
+    
+    // Get page selectors from our constants
+    const fromPageSelector = PAGE_SELECTORS[`PAGE${fromPage}`];
+    const toPageSelector = PAGE_SELECTORS[`PAGE${toPage}`];
+    
+    if (!fromPageSelector || !toPageSelector) {
+      console.error(`[ERROR] Invalid page selectors: from=${fromPageSelector}, to=${toPageSelector}`);
+      return;
+    }
+    
+    // Hide current page - select all elements matching the selector
+    const currentPageElements = document.querySelectorAll(fromPageSelector);
+    if (currentPageElements.length > 0) {
+      console.log(`[DEBUG] Hiding page ${fromPage}`);
+      currentPageElements.forEach(element => {
+        element.classList.add("hidden");
+        if (element.style) element.style.display = "none";
+      });
+    } else {
+      console.warn(`[WARN] No elements found for page ${fromPage}`);
+    }
+    
+    // Show next page - select all elements matching the selector
+    const nextPageElements = document.querySelectorAll(toPageSelector);
+    if (nextPageElements.length > 0) {
+      console.log(`[DEBUG] Showing page ${toPage}`);
+      nextPageElements.forEach(element => {
+        element.classList.remove("hidden");
+        if (element.style) element.style.display = "block";
+      });
+    } else {
+      console.warn(`[WARN] No elements found for page ${toPage}`);
+    }
+    
+    setButtonPage(fromPage, "next");
+    window.scrollTo(0, 0); // Scroll to top of page for better UX
+  }
+
   // A reusable function for handling form submissions
   function handleFormSubmission(formSelector, pageNumber) {
     const form = document.querySelector(formSelector);
@@ -379,44 +446,25 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
       
       // Navigate to the next page
-      console.log(`[DEBUG] Navigating from page ${pageNumber} to page ${pageNumber + 1}`);
-      
-      // Hide current page and show next
-      const currentPageElement = document.querySelector(`#page${pageNumber}`) || document.querySelector(`.page-${pageNumber}`);
-      const nextPageElement = document.querySelector(`#page${pageNumber + 1}`) || document.querySelector(`.page-${pageNumber + 1}`);
-      
-      if (currentPageElement) {
-        console.log(`[DEBUG] Hiding page ${pageNumber}`);
-        currentPageElement.classList.add("hidden");
-        if (currentPageElement.style) currentPageElement.style.display = "none";
-      }
-      
-      if (nextPageElement) {
-        console.log(`[DEBUG] Showing page ${pageNumber + 1}`);
-        nextPageElement.classList.remove("hidden");
-        if (nextPageElement.style) nextPageElement.style.display = "block";
-      }
-      
-      setButtonPage(pageNumber, "next");
-      window.scrollTo(0, 0); // Scroll to top of page for better UX
+      navigateToPage(pageNumber, pageNumber + 1);
     });
   }
   
   // Log the forms we found for debugging
-  const page3Form1 = document.querySelector("#wf-form-walknew31");
-  const page3Form2 = document.querySelector("#wf-form-walknew3-2");
+  const page3Form1 = document.querySelector(FORM_SELECTORS.PAGE3_1);
+  const page3Form2 = document.querySelector(FORM_SELECTORS.PAGE3_2);
   
   console.log("[DEBUG] Page 3 forms found:", {
-    "wf-form-walknew31": !!page3Form1, // This one will be ignored
-    "wf-form-walknew3-2": !!page3Form2  // Only listening to this one
+    [FORM_SELECTORS.PAGE3_1]: !!page3Form1, // This one will be ignored
+    [FORM_SELECTORS.PAGE3_2]: !!page3Form2  // Only listening to this one
   });
   
   // Set up form submission handlers for all pages
-  handleFormSubmission("#wf-form-walknew1", 1);
-  handleFormSubmission("#wf-form-walknew2", 2);
-  handleFormSubmission("#wf-form-walknew3-2", 3); // Only for the second form on page 3
-  handleFormSubmission("#wf-form-walknew4", 4);
-  handleFormSubmission("#wf-form-walknew5", 5);
+  handleFormSubmission(FORM_SELECTORS.PAGE1, 1);
+  handleFormSubmission(FORM_SELECTORS.PAGE2, 2);
+  handleFormSubmission(FORM_SELECTORS.PAGE3_2, 3); // Only for the second form on page 3
+  handleFormSubmission(FORM_SELECTORS.PAGE4, 4);
+  handleFormSubmission(FORM_SELECTORS.PAGE5, 5);
   
   // Show additional questions based on selected media types  
   function showquestions() {
