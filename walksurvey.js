@@ -697,7 +697,8 @@ async function storeCustomerData() {
     line_login: line_login,
     visitors: visitors,
     userid: userid,
-    projectid: projectid
+    projectid: projectid,
+    timestamp: new Date().toISOString() // Add ISO timestamp
   };
 
   const url = 'https://script.google.com/macros/s/AKfycbyseI7d49Z8faA5bLhJkLq0tj0jWvUGuryXv78dtkX7xPAVVq14Jxbo0dYzUchVSNUyvQ/exec';
@@ -754,6 +755,7 @@ async function sendFormDataToPubSub(pageNumber, formData) {
   const payload = {
     payloadkey: customer_id,
     payloaddatatype: pageNumber.toString(),
+    timestamp: new Date().toISOString(), // Add ISO timestamp
     ...formDataObj
   };
   
