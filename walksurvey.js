@@ -744,19 +744,115 @@ async function sendFormDataToPubSub(pageNumber, formData) {
     console.log(`[DEBUG] - ${key}: ${value}`);
   }
   
-  const formDataObj = {};
+  // Create standardized data object based on page number
+  let standardizedData = {};
   
-  // Convert FormData to regular object
-  for (const [key, value] of formData.entries()) {
-    formDataObj[key] = value;
+  // Key mapping based on page number
+  if (pageNumber === 1) {
+    // Form field mapping for page 1
+    const page1Mapping = {
+      'name': 'Name',
+      'surname': 'Surname',
+      'survey_id': 'P 1 Survey Id',
+      'phone': 'Phone',
+      'lineid': 'Line Id',
+      'email': 'Email',
+      'age': 'Age',
+      'p1-q2': 'marital',
+      'tumbon-work': 'Tumbon Work',
+      'amphur-work': 'Amphur Work',
+      'province-work': 'Province Work',
+      'zipcode-work': 'Zipcode Work',
+      'job': 'Job',
+      'tumbon-home': 'Tumbon Home',
+      'amphur-home': 'Amphur Home',
+      'province-home': 'Province Home',
+      'zipcode-home': 'Zipcode Home',
+      'p1-q3': 'realestate_installment',
+      'p1-q4': 'current_home'
+    };
+    
+    // Map form data to standardized keys
+    for (const [key, value] of formData.entries()) {
+      const standardKey = page1Mapping[key] || key;
+      standardizedData[standardKey] = value;
+    }
+  } 
+  else if (pageNumber === 2) {
+    // Form field mapping for page 2
+    const page2Mapping = {
+      'slider-single': 'income',
+      'slider-single-2': 'budget',
+      'p2-q1': 'have_debt',
+      'slider-single-6': 'debt',
+      'slider-single-3': 'member_family',
+      'slider-single-4': 'decision',
+      'slider-single-5': 'number_house',
+      'dragdrop-data': 'Name 2'
+    };
+    
+    for (const [key, value] of formData.entries()) {
+      const standardKey = page2Mapping[key] || key;
+      standardizedData[standardKey] = value;
+    }
   }
+  else if (pageNumber === 3) {
+    // Form field mapping for page 3
+    const page3Mapping = {
+      'p3-q1': 'first_media',
+      'ads_backup': 'billboard',
+      'web_backup': 'website_review',
+      'tiktok_backup': 'video_ads',
+      'p3-q5': 'google_map',
+      'route_backup': 'route',
+      'p3-q7': 'compare_project',
+      'compare-datail': 'compare_name'
+    };
+    
+    for (const [key, value] of formData.entries()) {
+      const standardKey = page3Mapping[key] || key;
+      standardizedData[standardKey] = value;
+    }
+  }
+  else if (pageNumber === 4) {
+    // Form field mapping for page 4
+    const page4Mapping = {
+      'p4-q1': 'satisfaction',
+      'Comments': 'comment'
+    };
+    
+    for (const [key, value] of formData.entries()) {
+      const standardKey = page4Mapping[key] || key;
+      standardizedData[standardKey] = value;
+    }
+  }
+  else if (pageNumber === 5) {
+    // Form field mapping for page 5
+    const page5Mapping = {
+      'p5-q1': 'consent'
+    };
+    
+    for (const [key, value] of formData.entries()) {
+      const standardKey = page5Mapping[key] || key;
+      standardizedData[standardKey] = value;
+    }
+  }
+  else {
+    // If no mapping exists for this page, just use original keys
+    for (const [key, value] of formData.entries()) {
+      standardizedData[key] = value;
+    }
+  }
+  
+  // Log standardized data
+  console.log(`[DEBUG] Standardized data for page ${pageNumber}:`, standardizedData);
   
   // Create payload according to the API requirements
   const payload = {
     payloadkey: customer_id,
     payloaddatatype: pageNumber.toString(),
     timestamp: new Date().toISOString(), // Add ISO timestamp
-    ...formDataObj
+    ...standardizedData
   };
   
   console.log(`[DEBUG] Prepared payload for Pub/Sub:`, payload);
