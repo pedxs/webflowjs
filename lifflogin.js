@@ -1,18 +1,18 @@
 /**
  * LINE LIFF Login Integration
  * 
- * This script is designed to be used on the login page (UAT: https://prinsiri.webflow.io/liff/login)
+ * This script is designed to be used on the login page (Production: https://www.prinsiri.com/liff/login)
  * It handles the LINE login flow and redirects users based on URL parameters.
  * 
  * Requires the LIFF SDK to be included in the HTML:
  * <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
  * 
- * UAT Version - Uses LIFF ID 1657411915-p7MDBJBd for prinsiri.webflow.io
+ * Production Version - Uses LIFF ID 1657411915-nDO8alaM for www.prinsiri.com
  */
 
 // Global variables
 const userAgent = navigator.userAgent.toLowerCase();  
-const liffId = '1657411915-p7MDBJBd'; // UAT LIFF ID for prinsiri.webflow.io
+const liffId = '1657411915-nDO8alaM'; // Production LIFF ID for www.prinsiri.com
 let param = window.location.search;  
 let urlParam = new URLSearchParams(param); // Defined once at the top
 let lineEmail = ''; // Global variable to store LINE email
