@@ -804,55 +804,57 @@ async function sendFormDataToPubSub(pageNumber, formData) {
   // Define field mappings for each page (LEFT: backend field name, RIGHT: original form field name)
   const fieldMappings = {
     1: {
-      'name': 'Name',
-      'surname': 'Surname',
-      'id': 'p1-survey-id',
-      'phone': 'Phone',
-      'lineid': 'line-id',
-      'email': 'Email',
-      'age': 'Age',
-      'marital': 'p1-q2',
-      'tumbon_work': 'Tumbon Work',
-      'amphur_work': 'Amphur Work',
-      'province_work': 'Province Work',
-      'zipcode_work': 'Zipcode Work',
-      'job': 'Job',
-      'tumbon_home': 'Tumbon Home',
-      'amphur_home': 'Amphur Home',
-      'province_home': 'Province Home',
-      'zipcode_home': 'Zipcode Home',
-      'realestate_installment': 'p1-q3',
-      'current_home': 'p1-q4',
-      'prefix': 'p1-q1'
+      'name': 'Name',                 // Map Name → name
+      'surname': 'Surname',           // Map Surname → surname
+      'id': 'p1-survey-id',           // Map p1-survey-id → id
+      'phone': 'Phone',               // Map Phone → phone
+      'lineid': 'line-id',            // Map line-id → lineid
+      'email': 'Email',               // Map Email → email
+      'age': 'Age',                   // Map Age → age  
+      'marital': 'p1-q2',             // Map p1-q2 → marital
+      'tumbon_work': 'tumbon-work',   // FIX: Map tumbon-work → tumbon_work
+      'amphur_work': 'amphur-work',   // FIX: Map amphur-work → amphur_work
+      'province_work': 'province-work', // FIX: Map province-work → province_work
+      'zipcode_work': 'zipcode-work', // FIX: Map zipcode-work → zipcode_work
+      'job': 'Job',                   // Map Job → job
+      'tumbon_home': 'tumbon-home',   // FIX: Map tumbon-home → tumbon_home
+      'amphur_home': 'amphur-home',   // FIX: Map amphur-home → amphur_home
+      'province_home': 'province-home', // FIX: Map province-home → province_home
+      'zipcode_home': 'zipcode-home', // FIX: Map zipcode-home → zipcode_home
+      'realestate_installment': 'p1-q3', // Map p1-q3 → realestate_installment
+      'current_home': 'p1-q4',        // Map p1-q4 → current_home
+      'prefix': 'p1-q1'               // Map p1-q1 → prefix
     },
     2: {
       // LEFT SIDE: Backend field name we want to use
       // RIGHT SIDE: Original field name from the form
       'income': 'slider-single',         // Map slider-single → income
       'budget': 'Slider-Single-2',       // Map Slider-Single-2 → budget
-      'have_debt': 'have_debt',          // Map have_debt → have_debt (keep same)
+      'have_debt': 'p2-q1',              // FIX: Map p2-q1 → have_debt
       'debt': 'Slider-Single-6',         // Map Slider-Single-6 → debt
-      'member_family': 'Slider-Single-3',// Map Slider-Single-3 → member_family
-      'decision': 'Slider-Single-4',     // Map Slider-Single-4 → decision
-      'number_house': 'Slider-Single-5', // Map Slider-Single-5 → number_house
-      'dragdrop_data': 'dragdrop_data'   // Map dragdrop_data → dragdrop_data (keep same)
+      'member_family': 'Slider-Single-3', // Map Slider-Single-3 → member_family
+      'decision': 'slider-single-4',     // FIX: Map slider-single-4 → decision (lowercase)
+      'number_house': 'slider-single-5', // FIX: Map slider-single-5 → number_house (lowercase)
+      'dragdrop_data': 'name-2'          // FIX: Map name-2 → dragdrop_data
     },
     3: {
-      'first_media': 'p3-q1',
-      'billboard': 'ads_backup',
-      'website_review': 'web_backup',
-      'video_ads': 'tiktok_backup',
-      'google_map': 'p3-q5',
-      'route': 'route_backup',
-      'compare_project': 'p3-q7',
-      'compare_name': 'compare-datail'
+      'first_media': 'p3-q1',              // Map p3-q1 → first_media
+      'billboard': 'ads_backup',           // Map ads_backup → billboard
+      'website_review': 'web_backup',      // Map web_backup → website_review
+      'video_ads': 'tiktok_backup',        // Map tiktok_backup → video_ads
+      'google_map': 'p3-q5',               // Map p3-q5 → google_map
+      'route': 'route_backup',             // Map route_backup → route
+      'compare_project': 'p3-q7',          // Map p3-q7 → compare_project
+      'compare_name': 'compare-datail',    // Map compare-datail → compare_name
+      'firstmedia_backup': 'firstmedia_backup' // FIX: Add mapping for firstmedia_backup
     },
     4: {
       'satisfaction': 'p4-q1',
-      'comment': 'Comments'
+      'comment': 'Comments'      // Map Comments → comment (already correct)
     },
     5: {
-      'consent': 'p5-q1'
+      'consent': 'p5-q1',
+      'id': 'P-5-Survey-Id'     // Map P-5-Survey-Id → id
     }
   };
   
@@ -866,6 +868,7 @@ async function sendFormDataToPubSub(pageNumber, formData) {
   // Process each form field through the mapping
   for (const [key, value] of formData.entries()) {
     let newKey = key; // Default to original key
+    let mappingFound = false;
     
     // Look for this original field name in the mapping values - do a careful debug
     console.log(`[DEBUG] Processing form field: "${key}" with value: "${value}"`);
@@ -874,14 +877,32 @@ async function sendFormDataToPubSub(pageNumber, formData) {
     for (const [backendKey, originalKey] of Object.entries(currentMapping)) {
       if (originalKey === key) {
         newKey = backendKey;
-        console.log(`[DEBUG] Found exact match: ${originalKey} -> ${backendKey}`);
+        mappingFound = true;
+        console.log(`[DEBUG] Found exact match: "${originalKey}" -> "${backendKey}"`);
         break;
+      }
+    }
+    
+    // If no exact match found, try case-insensitive match as a fallback
+    if (!mappingFound) {
+      const keyLower = key.toLowerCase();
+      for (const [backendKey, originalKey] of Object.entries(currentMapping)) {
+        if (originalKey.toLowerCase() === keyLower) {
+          newKey = backendKey;
+          mappingFound = true;
+          console.log(`[DEBUG] Found case-insensitive match: "${originalKey}" -> "${backendKey}"`);
+          break;
+        }
       }
     }
     
     // Add to standardized data with the new key
     standardizedData[newKey] = value;
-    console.log(`[DEBUG] Field mapping result: "${key}" -> "${newKey}"`);
+    if (mappingFound) {
+      console.log(`[DEBUG] Field mapped: "${key}" -> "${newKey}"`);
+    } else {
+      console.log(`[DEBUG] No mapping found for "${key}", keeping original name`);
+    }
   }
   
   // Log standardized data
