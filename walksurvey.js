@@ -203,40 +203,19 @@ document.addEventListener("DOMContentLoaded", async () => {
     console.error("[ERROR] Could not find page 2 submit button");
   }
   
-  // For page 3 - using Webflow form IDs (has two possible forms)
+  // For page 3 - only listen to wf-form-walknew3-2, ignoring wf-form-walknew31
   const page3Form1 = document.querySelector("#wf-form-walknew31");
   const page3Form2 = document.querySelector("#wf-form-walknew3-2");
   
-  // Get buttons from both possible forms
-  const page3Buttons1 = page3Form1 ? page3Form1.querySelector("input[type='submit'], button[type='submit']") : null;
+  console.log("[DEBUG] Page 3 forms found:", {
+    "wf-form-walknew31": !!page3Form1, // This one will be ignored
+    "wf-form-walknew3-2": !!page3Form2  // Only listening to this one
+  });
+  
+  // Get button only from the second form (3-2)
   const page3Buttons2 = page3Form2 ? page3Form2.querySelector("input[type='submit'], button[type='submit']") : null;
   
-  // Handle first form for page 3
-  if (page3Buttons1) {
-    console.log("[DEBUG] Found page 3-1 submit button, adding click event listener");
-    page3Buttons1.addEventListener("click", async function(e) {
-      console.log("[DEBUG] Page 3-1 submit button clicked");
-      
-      if (page3Form1 && page3Form1 instanceof HTMLFormElement) {
-        console.log("[DEBUG] Found page 3-1 form, creating FormData");
-        try {
-          const formData = new FormData(page3Form1);
-          console.log("[DEBUG] FormData created for page 3-1");
-          await sendFormDataToPubSub(3, formData);
-        } catch (formDataError) {
-          console.error("[ERROR] Error creating FormData for page 3-1:", formDataError);
-        }
-      } else {
-        console.error("[ERROR] Page 3-1 form not found or not an HTMLFormElement:", page3Form1);
-      }
-      
-      handlePage3Navigation();
-    });
-  } else {
-    console.error("[ERROR] Could not find page 3-1 submit button");
-  }
-  
-  // Handle second form for page 3
+  // Handle form 3-2 for page 3 (ignore form 3-1)
   if (page3Buttons2) {
     console.log("[DEBUG] Found page 3-2 submit button, adding click event listener");
     page3Buttons2.addEventListener("click", async function(e) {
