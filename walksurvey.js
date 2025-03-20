@@ -3,6 +3,7 @@ $('.select-item').each(function(){
   $('.select-field').append('<option-value="'+s+'">'+s+'</option>');
 })
 
+// Variables for the main form functionality
 let page = 1;
 let href;
 let urlObject;
@@ -16,6 +17,142 @@ let line_login = linkData.searchParams.get("line_login");
 let visitors = linkData.searchParams.get("visitor");
 let userid = linkData.searchParams.get("userid");
 var customer_id;
+
+// Variables for the drag-and-drop survey functionality
+let newRes = [];
+let reason = [];
+let offline = [];
+let online = [];
+let arData = {};
+let stop = true;
+let first_media = false;
+var firstmediaInput;
+
+// Function to handle first media selection
+function addFirstMedias(elementId, type, elementName) {
+  console.log("[MEDIA] Function called with arguments:", { elementId, type, elementName });
+
+  if (elementName !== 'ไม่เคยพบเห็น') {
+    firstmediaInput.value = elementName;
+    console.log("[MEDIA] Updated firstmediaInput value:", firstmediaInput.value);
+
+    const optionBox = document.querySelector("#box-" + elementId);
+    if (type === 'add') {
+      optionBox.classList.remove("hidden");
+      console.log(`[MEDIA] Unhid option box for elementId: ${elementId}`);
+
+      // Select the radio button within this option box
+      const radioButton = optionBox.querySelector('input[type="radio"]');
+      const radioVisual = optionBox.querySelector('.w-radio-input');
+      if (radioButton) {
+        // Set the actual radio input to checked
+        radioButton.checked = true;
+        firstmediaInput.value = radioButton.value;
+        console.log(`[MEDIA] Automatically selected radio button: ${radioButton.value}`);
+
+        // Add visual indication by toggling a selected style or class on the radio div
+        if (radioVisual) {
+          radioVisual.classList.add("selected");
+          console.log(`[MEDIA] Applied selected style to radio button visual element`);
+        }
+      }
+    } else {
+      optionBox.classList.add("hidden");
+      console.log(`[MEDIA] Hid option box for elementId: ${elementId}`);
+    }
+  }
+
+  const new_offline = offline.filter(el => el !== 'ไม่เคยพบเห็น');
+  const new_online = online.filter(el => el !== 'ไม่เคยพบเห็น');
+  console.log("[MEDIA] Filtered new_offline:", new_offline);
+  console.log("[MEDIA] Filtered new_online:", new_online);
+
+  const totalVisibleOptions = new_offline.length + new_online.length;
+  console.log("[MEDIA] Total visible options:", totalVisibleOptions);
+
+  const fmedia = document.querySelector("#first-media");
+
+  if (totalVisibleOptions === 0) {
+    // Locate the label element containing 'ไม่เคยพบเห็น' and find the associated radio button
+    const noMediaLabel = Array.from(document.querySelectorAll("label")).find(label => label.textContent.trim() === 'ไม่เคยพบเห็น');
+    if (noMediaLabel) {
+      const noMediaOption = noMediaLabel.querySelector('input[type="radio"]');
+      const noMediaVisual = noMediaLabel.querySelector('.w-radio-input');
+      if (noMediaOption) {
+        noMediaOption.checked = true;
+        firstmediaInput.value = noMediaOption.value;
+        console.log(`[MEDIA] Automatically selected 'ไม่เคยพบเห็น' radio button: ${noMediaOption.value}`);
+
+        // Add visual indication by toggling a selected style or class on the radio div
+        if (noMediaVisual) {
+          noMediaVisual.classList.add("selected");
+          console.log(`[MEDIA] Applied selected style to 'ไม่เคยพบเห็น' radio button visual element`);
+        }
+      }
+    }
+
+    // Hide the first-media question block since no other options are available
+    fmedia.classList.add("hidden");
+    console.log("[MEDIA] Hid the first-media question block after selecting 'ไม่เคยพบเห็น'.");
+  } else if (totalVisibleOptions > 1) {
+    fmedia.classList.remove("hidden");
+    console.log("[MEDIA] Unhid the first-media question block for user selection");
+
+    const firstMediaRadios = fmedia.querySelectorAll('input[type="radio"]');
+    firstMediaRadios.forEach(radio => {
+      radio.checked = false;
+      console.log(`[MEDIA] Deselected radio button: ${radio.value}`);
+    });
+  }
+}
+
+// Function to add or remove items from arrays for the survey
+function addtoArray(elementId, text, type) {
+  let actualArray;
+  if (elementId.includes('residence')) {
+    actualArray = newRes;
+  } else if (elementId.includes('reason')) {
+    actualArray = reason;
+  } else if (elementId.includes('offline')) {
+    actualArray = offline;
+  } else if (elementId.includes('online')) {
+    actualArray = online;
+  }
+
+  if (type === 'add') {
+    actualArray.push(text);
+  } else if (type === 'remove') {
+    const index = actualArray.indexOf(text);
+    if (index !== -1) {
+      actualArray.splice(index, 1);
+    }
+  }
+  
+  arData = {
+    new_residences: newRes, 
+    buying_reasons: reason, 
+    offline_medias: offline, 
+    online_medias: online
+  };
+  
+  console.log("[SURVEY] Updated array data:", arData);
+  var arDataString = JSON.stringify(arData);
+  document.getElementById('dragdrop-data').value = arDataString;
+  
+  if (newRes.length < 1 || reason.length < 1 || offline.length < 1 || online.length < 1) {
+    stop = true;
+    document.querySelector("#btn-next2").classList.add("hidden");
+    document.querySelector("#btn-error").classList.remove("hidden");
+  } else {
+    stop = false;
+    document.querySelector("#btn-next2").classList.remove("hidden");
+    document.querySelector("#btn-error").classList.add("hidden");
+  }
+  
+  if (elementId.includes('online') || elementId.includes('offline')) {
+    addFirstMedias(elementId, type, text);
+  }
+}
     
 const setButtonPage = (apage, subject) => {
   console.log(apage+" "+subject);
@@ -94,6 +231,44 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   } catch (fieldError) {
     console.error("[ERROR] Error setting survey ID fields:", fieldError);
+  }
+  
+  // Initialize drag-drop survey functionality
+  try {
+    console.log("[SURVEY] Initializing drag-drop survey elements");
+    
+    // Set firstmediaInput
+    firstmediaInput = document.querySelector('#firstmedia_backup');
+    console.log("[SURVEY] First media input found:", !!firstmediaInput);
+    
+    // Hide elements with auto-hidden class
+    const hiddenElements = document.querySelectorAll('.auto-hidden');
+    hiddenElements.forEach((element) => {
+      element.classList.add("hidden");
+      console.log("[SURVEY] Added hidden class to element:", element.className);
+    });
+    
+    // Set up drag-drop functionality
+    var boxitems = document.querySelectorAll('.survey-form-drag-drop');
+    boxitems.forEach(function (item) {
+      var rightbox = item.querySelector('.rightbox');
+      var leftbox = item.querySelector('.leftbox');
+      
+      console.log("[SURVEY] Setting up drag-drop for:", item.className);
+      
+      // Bind initial click event listeners to all items in both boxes
+      var allItems = item.querySelectorAll(".drag-drop-items");
+      allItems.forEach(function (dragItem) {
+        dragItem.addEventListener("click", function(event) {
+          var targetBox = dragItem.closest('.leftbox') ? rightbox : leftbox; 
+          var sourceBox = dragItem.closest('.leftbox') ? leftbox : rightbox;
+          moveItemToBox(event, targetBox, sourceBox);
+        });
+        console.log("[SURVEY] Added click listener to drag item:", dragItem.textContent);
+      });
+    });
+  } catch (surveyError) {
+    console.error("[ERROR] Failed to initialize survey elements:", surveyError);
   }
   
   let bpage = 1;
@@ -310,6 +485,79 @@ document.addEventListener("DOMContentLoaded", async () => {
     setButtonPage(3, "next");
     window.scrollTo(0, 0); // Scroll to top of page for better UX
   }
+  
+// Show additional questions based on selected media types  
+function showquestions() {
+  console.log("[SURVEY] Checking for conditional questions to show");
+  //show youtube and billboard questions
+  if (stop === false) {
+    var i = 1;
+    while (offline.length >= i) {
+      if (offline[i-1] == "ป้ายโฆษณา") {
+        document.querySelector("#billboard-question-block").classList.remove("hidden");
+        document.querySelector("#billboard-question-block").setAttribute("required", true);
+        console.log("[SURVEY] Showing billboard question block");
+        i = offline.length;
+      }
+      i+=1;
+    }
+    
+    i = 1;
+    while (online.length >= i) {
+      if ((online[i-1]) == "เว็บไซต์รีวิว" || online[i-1] == "Youtube") {
+        document.querySelector("#youtube-block").classList.remove("hidden");
+        document.querySelector("#youtube-block").setAttribute("required", true);
+        console.log("[SURVEY] Showing youtube block");
+      }
+      
+      if (["TikTok", "Youtube", "Google", "Facebook", "Instagram"].includes(online[i-1])) {
+        document.querySelector("#tiktok-block").classList.remove("hidden");
+        document.querySelector("#tiktok-block").setAttribute("required", true);
+        console.log("[SURVEY] Showing tiktok block");
+      }
+      
+      i+=1;
+    }
+  }
+}
+
+// Function to move an item from left to right in drag-drop survey
+function moveItemToBox(event, dropBox, dragBox) {
+  var itemToMove;
+  if (event.target) {
+    if (event.target.classList.contains('drag-drop-items')) {
+      itemToMove = event.target;
+    } else {
+      itemToMove = event.target.parentElement;
+    }
+  } else { 
+    itemToMove = event;
+  }
+  
+  var count = dropBox.id.includes('right') ? dropBox.children.length : dragBox.children.length - 1;
+  console.log(`[SURVEY] Move item count: ${count}, dropBox: ${dropBox.id}, dragBox: ${dragBox.id}`);
+  
+  if (count < 3) {
+    console.log(`[SURVEY] Moving item: ${itemToMove.textContent}`);
+    // add selected color
+    if (dropBox.id.includes('right')) {
+      itemToMove.classList.remove("disable"); 
+      addtoArray(itemToMove.id, itemToMove.textContent, 'add');
+    } else {
+      itemToMove.classList.add("disable");
+      addtoArray(itemToMove.id, itemToMove.textContent, 'remove');
+    }
+
+    const clonedItem = itemToMove.cloneNode(true);
+    dropBox.appendChild(clonedItem);
+    itemToMove.remove();
+        
+    //add click back to the item
+    clonedItem.addEventListener("click", function(event) {
+      moveItemToBox(event, dragBox, dropBox);
+    });
+  }
+}
   
   // For page 4 - using Webflow form IDs
   const page4Form = document.querySelector("#wf-form-walknew4");
