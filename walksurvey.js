@@ -103,49 +103,64 @@ document.addEventListener("DOMContentLoaded", async () => {
   
   // For page 1 - using the Webflow form IDs
   const page1Form = document.querySelector("#wf-form-walknew1");
-  const page1Buttons = page1Form ? page1Form.querySelector("input[type='submit'], button[type='submit']") : null;
   
-  if (page1Buttons) {
-    console.log("[DEBUG] Found page 1 submit button, adding click event listener");
-    page1Buttons.addEventListener("click", async function(e) {
-      console.log("[DEBUG] Page 1 submit button clicked");
+  // Add event listener to the form itself, not just the button
+  if (page1Form && page1Form instanceof HTMLFormElement) {
+    console.log("[DEBUG] Found page 1 form, adding submit event listener");
+    page1Form.addEventListener("submit", async function(e) {
+      // Prevent the default form submission to avoid the brief flash of Webflow's submit page
+      e.preventDefault();
+      console.log("[DEBUG] Page 1 form submitted - default behavior prevented");
       
-      // Don't prevent default - let form submit to Webflow
-      // But do our navigation after a slight delay
-      if (page1Form && page1Form instanceof HTMLFormElement) {
-        console.log("[DEBUG] Found page 1 form, creating FormData");
-        try {
-          const formData = new FormData(page1Form);
-          console.log("[DEBUG] FormData created for page 1");
-          await sendFormDataToPubSub(1, formData);
-        } catch (formDataError) {
-          console.error("[ERROR] Error creating FormData for page 1:", formDataError);
+      try {
+        const formData = new FormData(page1Form);
+        console.log("[DEBUG] FormData created for page 1");
+        
+        // Submit the form data to Webflow manually if needed
+        const formAction = page1Form.getAttribute("action");
+        const formMethod = page1Form.getAttribute("method") || "POST";
+        
+        // Log form submission details
+        console.log(`[DEBUG] Form action: ${formAction}, method: ${formMethod}`);
+        
+        // Send our data to Pub/Sub
+        await sendFormDataToPubSub(1, formData);
+        
+        // Optionally submit to Webflow in the background
+        if (formAction) {
+          console.log("[DEBUG] Submitting form data to Webflow in the background");
+          fetch(formAction, {
+            method: formMethod,
+            body: formData,
+            mode: 'no-cors' // To avoid CORS issues
+          }).catch(error => {
+            console.error("[ERROR] Background Webflow submission failed:", error);
+          });
         }
-      } else {
-        console.error("[ERROR] Page 1 form not found or not an HTMLFormElement:", page1Form);
+      } catch (formDataError) {
+        console.error("[ERROR] Error creating FormData for page 1:", formDataError);
       }
       
-      // Set a timeout to navigate after form is submitted
-      setTimeout(() => {
-        console.log("[DEBUG] Timeout callback for page 1 navigation");
-        // Webflow specific - hide current page and show next
-        const page1Element = document.querySelector("#page1") || document.querySelector(".page-1");
-        const page2Element = document.querySelector("#page2") || document.querySelector(".page-2");
-        
-        if (page1Element) {
-          console.log("[DEBUG] Hiding page 1");
-          page1Element.classList.add("hidden");
-          if (page1Element.style) page1Element.style.display = "none";
-        }
-        
-        if (page2Element) {
-          console.log("[DEBUG] Showing page 2");
-          page2Element.classList.remove("hidden");
-          if (page2Element.style) page2Element.style.display = "block";
-        }
-        
-        setButtonPage(1, "next");
-      }, 300); // Increased timeout for more reliability
+      // Navigate immediately without waiting
+      console.log("[DEBUG] Navigating to page 2");
+      // Webflow specific - hide current page and show next
+      const page1Element = document.querySelector("#page1") || document.querySelector(".page-1");
+      const page2Element = document.querySelector("#page2") || document.querySelector(".page-2");
+      
+      if (page1Element) {
+        console.log("[DEBUG] Hiding page 1");
+        page1Element.classList.add("hidden");
+        if (page1Element.style) page1Element.style.display = "none";
+      }
+      
+      if (page2Element) {
+        console.log("[DEBUG] Showing page 2");
+        page2Element.classList.remove("hidden");
+        if (page2Element.style) page2Element.style.display = "block";
+      }
+      
+      setButtonPage(1, "next");
+      window.scrollTo(0, 0); // Scroll to top of page for better UX
     });
   } else {
     console.error("[ERROR] Could not find page 1 submit button");
@@ -153,54 +168,71 @@ document.addEventListener("DOMContentLoaded", async () => {
   
   // For page 2 - using Webflow form IDs
   const page2Form = document.querySelector("#wf-form-walknew2");
-  const page2Buttons = page2Form ? page2Form.querySelector("input[type='submit'], button[type='submit']") : null;
   
-  if (page2Buttons) {
-    console.log("[DEBUG] Found page 2 submit button, adding click event listener");
-    page2Buttons.addEventListener("click", async function(e) {
-      console.log("[DEBUG] Page 2 submit button clicked");
+  if (page2Form && page2Form instanceof HTMLFormElement) {
+    console.log("[DEBUG] Found page 2 form, adding submit event listener");
+    page2Form.addEventListener("submit", async function(e) {
+      // Prevent the default form submission
+      e.preventDefault();
+      console.log("[DEBUG] Page 2 form submitted - default behavior prevented");
       
-      if (page2Form && page2Form instanceof HTMLFormElement) {
-        console.log("[DEBUG] Found page 2 form, creating FormData");
-        try {
-          const formData = new FormData(page2Form);
-          console.log("[DEBUG] FormData created for page 2");
-          await sendFormDataToPubSub(2, formData);
-        } catch (formDataError) {
-          console.error("[ERROR] Error creating FormData for page 2:", formDataError);
+      try {
+        const formData = new FormData(page2Form);
+        console.log("[DEBUG] FormData created for page 2");
+        
+        // Submit the form data to Webflow manually if needed
+        const formAction = page2Form.getAttribute("action");
+        const formMethod = page2Form.getAttribute("method") || "POST";
+        
+        // Log form submission details
+        console.log(`[DEBUG] Form action: ${formAction}, method: ${formMethod}`);
+        
+        // Send our data to Pub/Sub
+        await sendFormDataToPubSub(2, formData);
+        
+        // Optionally submit to Webflow in the background
+        if (formAction) {
+          console.log("[DEBUG] Submitting form data to Webflow in the background");
+          fetch(formAction, {
+            method: formMethod,
+            body: formData,
+            mode: 'no-cors' // To avoid CORS issues
+          }).catch(error => {
+            console.error("[ERROR] Background Webflow submission failed:", error);
+          });
         }
-      } else {
-        console.error("[ERROR] Page 2 form not found or not an HTMLFormElement:", page2Form);
+      } catch (formDataError) {
+        console.error("[ERROR] Error creating FormData for page 2:", formDataError);
       }
       
-      setTimeout(() => {
-        console.log("[DEBUG] Timeout callback for page 2 navigation");
-        // Webflow specific - hide current page and show next
-        const page2Element = document.querySelector("#page2") || document.querySelector(".page-2");
-        const page3Element = document.querySelector("#page3") || document.querySelector(".page-3");
-        
-        if (page2Element) {
-          console.log("[DEBUG] Hiding page 2");
-          page2Element.classList.add("hidden");
-          if (page2Element.style) page2Element.style.display = "none";
-        }
-        
-        if (page3Element) {
-          console.log("[DEBUG] Showing page 3");
-          page3Element.classList.remove("hidden");
-          if (page3Element.style) page3Element.style.display = "block";
-        }
-        
-        if (typeof showquestions === 'function') {
-          console.log("[DEBUG] Calling showquestions function");
-          showquestions();
-        }
-        
-        setButtonPage(2, "next");
-      }, 300);
+      // Navigate immediately without waiting
+      console.log("[DEBUG] Navigating to page 3");
+      // Webflow specific - hide current page and show next
+      const page2Element = document.querySelector("#page2") || document.querySelector(".page-2");
+      const page3Element = document.querySelector("#page3") || document.querySelector(".page-3");
+      
+      if (page2Element) {
+        console.log("[DEBUG] Hiding page 2");
+        page2Element.classList.add("hidden");
+        if (page2Element.style) page2Element.style.display = "none";
+      }
+      
+      if (page3Element) {
+        console.log("[DEBUG] Showing page 3");
+        page3Element.classList.remove("hidden");
+        if (page3Element.style) page3Element.style.display = "block";
+      }
+      
+      if (typeof showquestions === 'function') {
+        console.log("[DEBUG] Calling showquestions function");
+        showquestions();
+      }
+      
+      setButtonPage(2, "next");
+      window.scrollTo(0, 0); // Scroll to top of page for better UX
     });
   } else {
-    console.error("[ERROR] Could not find page 2 submit button");
+    console.error("[ERROR] Could not find page 2 form");
   }
   
   // For page 3 - only listen to wf-form-walknew3-2, ignoring wf-form-walknew31
@@ -212,150 +244,199 @@ document.addEventListener("DOMContentLoaded", async () => {
     "wf-form-walknew3-2": !!page3Form2  // Only listening to this one
   });
   
-  // Get button only from the second form (3-2)
-  const page3Buttons2 = page3Form2 ? page3Form2.querySelector("input[type='submit'], button[type='submit']") : null;
-  
-  // Handle form 3-2 for page 3 (ignore form 3-1)
-  if (page3Buttons2) {
-    console.log("[DEBUG] Found page 3-2 submit button, adding click event listener");
-    page3Buttons2.addEventListener("click", async function(e) {
-      console.log("[DEBUG] Page 3-2 submit button clicked");
+  // Only add event listener to the second form (3-2)
+  if (page3Form2 && page3Form2 instanceof HTMLFormElement) {
+    console.log("[DEBUG] Found page 3-2 form, adding submit event listener");
+    page3Form2.addEventListener("submit", async function(e) {
+      // Prevent the default form submission
+      e.preventDefault();
+      console.log("[DEBUG] Page 3-2 form submitted - default behavior prevented");
       
-      if (page3Form2 && page3Form2 instanceof HTMLFormElement) {
-        console.log("[DEBUG] Found page 3-2 form, creating FormData");
-        try {
-          const formData = new FormData(page3Form2);
-          console.log("[DEBUG] FormData created for page 3-2");
-          await sendFormDataToPubSub(3, formData);
-        } catch (formDataError) {
-          console.error("[ERROR] Error creating FormData for page 3-2:", formDataError);
+      try {
+        const formData = new FormData(page3Form2);
+        console.log("[DEBUG] FormData created for page 3-2");
+        
+        // Submit the form data to Webflow manually if needed
+        const formAction = page3Form2.getAttribute("action");
+        const formMethod = page3Form2.getAttribute("method") || "POST";
+        
+        // Log form submission details
+        console.log(`[DEBUG] Form action: ${formAction}, method: ${formMethod}`);
+        
+        // Send our data to Pub/Sub
+        await sendFormDataToPubSub(3, formData);
+        
+        // Optionally submit to Webflow in the background
+        if (formAction) {
+          console.log("[DEBUG] Submitting form data to Webflow in the background");
+          fetch(formAction, {
+            method: formMethod,
+            body: formData,
+            mode: 'no-cors' // To avoid CORS issues
+          }).catch(error => {
+            console.error("[ERROR] Background Webflow submission failed:", error);
+          });
         }
-      } else {
-        console.error("[ERROR] Page 3-2 form not found or not an HTMLFormElement:", page3Form2);
+      } catch (formDataError) {
+        console.error("[ERROR] Error creating FormData for page 3-2:", formDataError);
       }
       
+      // Navigate without delay
       handlePage3Navigation();
     });
   } else {
-    console.error("[ERROR] Could not find page 3-2 submit button");
+    console.error("[ERROR] Could not find page 3-2 form");
   }
   
   // Common navigation function for page 3
   function handlePage3Navigation() {
-    setTimeout(() => {
-      console.log("[DEBUG] Timeout callback for page 3 navigation");
-      // Webflow specific - hide current page and show next
-      const page3Element = document.querySelector("#page3") || document.querySelector(".page-3");
-      const page4Element = document.querySelector("#page4") || document.querySelector(".page-4");
-      
-      if (page3Element) {
-        console.log("[DEBUG] Hiding page 3");
-        page3Element.classList.add("hidden");
-        if (page3Element.style) page3Element.style.display = "none";
-      }
-      
-      if (page4Element) {
-        console.log("[DEBUG] Showing page 4");
-        page4Element.classList.remove("hidden");
-        if (page4Element.style) page4Element.style.display = "block";
-      }
-      
-      setButtonPage(3, "next");
-    }, 300);
+    console.log("[DEBUG] Navigating from page 3 to page 4");
+    // Webflow specific - hide current page and show next
+    const page3Element = document.querySelector("#page3") || document.querySelector(".page-3");
+    const page4Element = document.querySelector("#page4") || document.querySelector(".page-4");
+    
+    if (page3Element) {
+      console.log("[DEBUG] Hiding page 3");
+      page3Element.classList.add("hidden");
+      if (page3Element.style) page3Element.style.display = "none";
+    }
+    
+    if (page4Element) {
+      console.log("[DEBUG] Showing page 4");
+      page4Element.classList.remove("hidden");
+      if (page4Element.style) page4Element.style.display = "block";
+    }
+    
+    setButtonPage(3, "next");
+    window.scrollTo(0, 0); // Scroll to top of page for better UX
   }
   
   // For page 4 - using Webflow form IDs
   const page4Form = document.querySelector("#wf-form-walknew4");
-  const page4Buttons = page4Form ? page4Form.querySelector("input[type='submit'], button[type='submit']") : null;
   
-  if (page4Buttons) {
-    console.log("[DEBUG] Found page 4 submit button, adding click event listener");
-    page4Buttons.addEventListener("click", async function(e) {
-      console.log("[DEBUG] Page 4 submit button clicked");
+  if (page4Form && page4Form instanceof HTMLFormElement) {
+    console.log("[DEBUG] Found page 4 form, adding submit event listener");
+    page4Form.addEventListener("submit", async function(e) {
+      // Prevent the default form submission
+      e.preventDefault();
+      console.log("[DEBUG] Page 4 form submitted - default behavior prevented");
       
-      if (page4Form && page4Form instanceof HTMLFormElement) {
-        console.log("[DEBUG] Found page 4 form, creating FormData");
-        try {
-          const formData = new FormData(page4Form);
-          console.log("[DEBUG] FormData created for page 4");
-          await sendFormDataToPubSub(4, formData);
-        } catch (formDataError) {
-          console.error("[ERROR] Error creating FormData for page 4:", formDataError);
+      try {
+        const formData = new FormData(page4Form);
+        console.log("[DEBUG] FormData created for page 4");
+        
+        // Submit the form data to Webflow manually if needed
+        const formAction = page4Form.getAttribute("action");
+        const formMethod = page4Form.getAttribute("method") || "POST";
+        
+        // Log form submission details
+        console.log(`[DEBUG] Form action: ${formAction}, method: ${formMethod}`);
+        
+        // Send our data to Pub/Sub
+        await sendFormDataToPubSub(4, formData);
+        
+        // Optionally submit to Webflow in the background
+        if (formAction) {
+          console.log("[DEBUG] Submitting form data to Webflow in the background");
+          fetch(formAction, {
+            method: formMethod,
+            body: formData,
+            mode: 'no-cors' // To avoid CORS issues
+          }).catch(error => {
+            console.error("[ERROR] Background Webflow submission failed:", error);
+          });
         }
-      } else {
-        console.error("[ERROR] Page 4 form not found or not an HTMLFormElement:", page4Form);
+      } catch (formDataError) {
+        console.error("[ERROR] Error creating FormData for page 4:", formDataError);
       }
       
-      setTimeout(() => {
-        console.log("[DEBUG] Timeout callback for page 4 navigation");
-        // Webflow specific - hide current page and show next
-        const page4Element = document.querySelector("#page4") || document.querySelector(".page-4");
-        const page5Element = document.querySelector("#page5") || document.querySelector(".page-5");
-        
-        if (page4Element) {
-          console.log("[DEBUG] Hiding page 4");
-          page4Element.classList.add("hidden");
-          if (page4Element.style) page4Element.style.display = "none";
-        }
-        
-        if (page5Element) {
-          console.log("[DEBUG] Showing page 5");
-          page5Element.classList.remove("hidden");
-          if (page5Element.style) page5Element.style.display = "block";
-        }
-        
-        setButtonPage(4, "next");
-      }, 300);
+      // Navigate immediately without waiting
+      console.log("[DEBUG] Navigating to page 5");
+      // Webflow specific - hide current page and show next
+      const page4Element = document.querySelector("#page4") || document.querySelector(".page-4");
+      const page5Element = document.querySelector("#page5") || document.querySelector(".page-5");
+      
+      if (page4Element) {
+        console.log("[DEBUG] Hiding page 4");
+        page4Element.classList.add("hidden");
+        if (page4Element.style) page4Element.style.display = "none";
+      }
+      
+      if (page5Element) {
+        console.log("[DEBUG] Showing page 5");
+        page5Element.classList.remove("hidden");
+        if (page5Element.style) page5Element.style.display = "block";
+      }
+      
+      setButtonPage(4, "next");
+      window.scrollTo(0, 0); // Scroll to top of page for better UX
     });
   } else {
-    console.error("[ERROR] Could not find page 4 submit button");
+    console.error("[ERROR] Could not find page 4 form");
   }
   
   // For page 5 - using Webflow form IDs
   const page5Form = document.querySelector("#wf-form-walknew5");
-  const page5Buttons = page5Form ? page5Form.querySelector("input[type='submit'], button[type='submit']") : null;
   
-  if (page5Buttons) {
-    console.log("[DEBUG] Found page 5 submit button, adding click event listener");
-    page5Buttons.addEventListener("click", async function(e) {
-      console.log("[DEBUG] Page 5 submit button clicked");
+  if (page5Form && page5Form instanceof HTMLFormElement) {
+    console.log("[DEBUG] Found page 5 form, adding submit event listener");
+    page5Form.addEventListener("submit", async function(e) {
+      // Prevent the default form submission
+      e.preventDefault();
+      console.log("[DEBUG] Page 5 form submitted - default behavior prevented");
       
-      if (page5Form && page5Form instanceof HTMLFormElement) {
-        console.log("[DEBUG] Found page 5 form, creating FormData");
-        try {
-          const formData = new FormData(page5Form);
-          console.log("[DEBUG] FormData created for page 5");
-          await sendFormDataToPubSub(5, formData);
-        } catch (formDataError) {
-          console.error("[ERROR] Error creating FormData for page 5:", formDataError);
+      try {
+        const formData = new FormData(page5Form);
+        console.log("[DEBUG] FormData created for page 5");
+        
+        // Submit the form data to Webflow manually if needed
+        const formAction = page5Form.getAttribute("action");
+        const formMethod = page5Form.getAttribute("method") || "POST";
+        
+        // Log form submission details
+        console.log(`[DEBUG] Form action: ${formAction}, method: ${formMethod}`);
+        
+        // Send our data to Pub/Sub
+        await sendFormDataToPubSub(5, formData);
+        
+        // Optionally submit to Webflow in the background
+        if (formAction) {
+          console.log("[DEBUG] Submitting form data to Webflow in the background");
+          fetch(formAction, {
+            method: formMethod,
+            body: formData,
+            mode: 'no-cors' // To avoid CORS issues
+          }).catch(error => {
+            console.error("[ERROR] Background Webflow submission failed:", error);
+          });
         }
-      } else {
-        console.error("[ERROR] Page 5 form not found or not an HTMLFormElement:", page5Form);
+      } catch (formDataError) {
+        console.error("[ERROR] Error creating FormData for page 5:", formDataError);
       }
       
-      setTimeout(() => {
-        console.log("[DEBUG] Timeout callback for page 5 navigation");
-        // Webflow specific - hide current page and show next
-        const page5Element = document.querySelector("#page5") || document.querySelector(".page-5");
-        const page6Element = document.querySelector("#page6") || document.querySelector(".page-6");
-        
-        if (page5Element) {
-          console.log("[DEBUG] Hiding page 5");
-          page5Element.classList.add("hidden");
-          if (page5Element.style) page5Element.style.display = "none";
-        }
-        
-        if (page6Element) {
-          console.log("[DEBUG] Showing page 6");
-          page6Element.classList.remove("hidden");
-          if (page6Element.style) page6Element.style.display = "block";
-        }
-        
-        setButtonPage(5, "next");
-      }, 300);
+      // Navigate immediately without waiting
+      console.log("[DEBUG] Navigating to page 6");
+      // Webflow specific - hide current page and show next
+      const page5Element = document.querySelector("#page5") || document.querySelector(".page-5");
+      const page6Element = document.querySelector("#page6") || document.querySelector(".page-6");
+      
+      if (page5Element) {
+        console.log("[DEBUG] Hiding page 5");
+        page5Element.classList.add("hidden");
+        if (page5Element.style) page5Element.style.display = "none";
+      }
+      
+      if (page6Element) {
+        console.log("[DEBUG] Showing page 6");
+        page6Element.classList.remove("hidden");
+        if (page6Element.style) page6Element.style.display = "block";
+      }
+      
+      setButtonPage(5, "next");
+      window.scrollTo(0, 0); // Scroll to top of page for better UX
     });
   } else {
-    console.error("[ERROR] Could not find page 5 submit button");
+    console.error("[ERROR] Could not find page 5 form");
   }
   
   // Debug elements and remove old event listeners - no longer needed with Webflow forms
