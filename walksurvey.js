@@ -747,101 +747,80 @@ async function sendFormDataToPubSub(pageNumber, formData) {
   // Create standardized data object based on page number
   let standardizedData = {};
   
-  // Key mapping based on page number
-  if (pageNumber === 1) {
-    // Form field mapping for page 1
-    const page1Mapping = {
+  // Define field mappings for each page (LEFT: backend field name, RIGHT: original form field name)
+  const fieldMappings = {
+    1: {
       'name': 'Name',
       'surname': 'Surname',
-      'survey_id': 'P 1 Survey Id',
+      'id': 'p1-survey-id',
       'phone': 'Phone',
-      'lineid': 'Line Id',
+      'lineid': 'line-id',
       'email': 'Email',
       'age': 'Age',
-      'p1-q2': 'marital',
-      'tumbon-work': 'Tumbon Work',
-      'amphur-work': 'Amphur Work',
-      'province-work': 'Province Work',
-      'zipcode-work': 'Zipcode Work',
+      'marital': 'p1-q2',
+      'tumbon_work': 'Tumbon Work',
+      'amphur_work': 'Amphur Work',
+      'province_work': 'Province Work',
+      'zipcode_work': 'Zipcode Work',
       'job': 'Job',
-      'tumbon-home': 'Tumbon Home',
-      'amphur-home': 'Amphur Home',
-      'province-home': 'Province Home',
-      'zipcode-home': 'Zipcode Home',
-      'p1-q3': 'realestate_installment',
-      'p1-q4': 'current_home'
-    };
-    
-    // Map form data to standardized keys
-    for (const [key, value] of formData.entries()) {
-      const standardKey = page1Mapping[key] || key;
-      standardizedData[standardKey] = value;
+      'tumbon_home': 'Tumbon Home',
+      'amphur_home': 'Amphur Home',
+      'province_home': 'Province Home',
+      'zipcode_home': 'Zipcode Home',
+      'realestate_installment': 'p1-q3',
+      'current_home': 'p1-q4',
+      'prefix': 'p1-q1'
+    },
+    2: {
+      'income': 'Slider Single',
+      'budget': 'Slider Single 2',
+      'have_debt': 'p2-q1',
+      'debt': 'Slider Single 6',
+      'member_family': 'Slider Single 3',
+      'decision': 'Slider Single 4',
+      'number_house': 'Slider Single 5',
+      'dragdrop_data': 'Name 2'
+    },
+    3: {
+      'first_media': 'p3-q1',
+      'billboard': 'ads_backup',
+      'website_review': 'web_backup',
+      'video_ads': 'tiktok_backup',
+      'google_map': 'p3-q5',
+      'route': 'route_backup',
+      'compare_project': 'p3-q7',
+      'compare_name': 'compare-datail'
+    },
+    4: {
+      'satisfaction': 'p4-q1',
+      'comment': 'Comments'
+    },
+    5: {
+      'consent': 'p5-q1'
     }
-  } 
-  else if (pageNumber === 2) {
-    // Form field mapping for page 2
-    const page2Mapping = {
-      'slider-single': 'income',
-      'slider-single-2': 'budget',
-      'p2-q1': 'have_debt',
-      'slider-single-6': 'debt',
-      'slider-single-3': 'member_family',
-      'slider-single-4': 'decision',
-      'slider-single-5': 'number_house',
-      'dragdrop-data': 'Name 2'
-    };
-    
-    for (const [key, value] of formData.entries()) {
-      const standardKey = page2Mapping[key] || key;
-      standardizedData[standardKey] = value;
-    }
+  };
+  
+  // Get the mapping for the current page or use an empty object if not defined
+  const currentMapping = fieldMappings[pageNumber] || {};
+  
+  if (Object.keys(currentMapping).length === 0) {
+    console.log(`[DEBUG] No field mapping defined for page ${pageNumber}, using original field names`);
   }
-  else if (pageNumber === 3) {
-    // Form field mapping for page 3
-    const page3Mapping = {
-      'p3-q1': 'first_media',
-      'ads_backup': 'billboard',
-      'web_backup': 'website_review',
-      'tiktok_backup': 'video_ads',
-      'p3-q5': 'google_map',
-      'route_backup': 'route',
-      'p3-q7': 'compare_project',
-      'compare-datail': 'compare_name'
-    };
+  
+  // Process each form field through the mapping
+  for (const [key, value] of formData.entries()) {
+    let newKey = key; // Default to original key
     
-    for (const [key, value] of formData.entries()) {
-      const standardKey = page3Mapping[key] || key;
-      standardizedData[standardKey] = value;
+    // Look for this original field name in the mapping values
+    for (const [backendKey, originalKey] of Object.entries(currentMapping)) {
+      if (originalKey === key) {
+        newKey = backendKey;
+        break;
+      }
     }
-  }
-  else if (pageNumber === 4) {
-    // Form field mapping for page 4
-    const page4Mapping = {
-      'p4-q1': 'satisfaction',
-      'Comments': 'comment'
-    };
     
-    for (const [key, value] of formData.entries()) {
-      const standardKey = page4Mapping[key] || key;
-      standardizedData[standardKey] = value;
-    }
-  }
-  else if (pageNumber === 5) {
-    // Form field mapping for page 5
-    const page5Mapping = {
-      'p5-q1': 'consent'
-    };
-    
-    for (const [key, value] of formData.entries()) {
-      const standardKey = page5Mapping[key] || key;
-      standardizedData[standardKey] = value;
-    }
-  }
-  else {
-    // If no mapping exists for this page, just use original keys
-    for (const [key, value] of formData.entries()) {
-      standardizedData[key] = value;
-    }
+    // Add to standardized data with the new key
+    standardizedData[newKey] = value;
   }
   
   // Log standardized data
