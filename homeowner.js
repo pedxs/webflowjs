@@ -10,11 +10,11 @@
  * This version integrates with the new homeowner verification backend at:
  * https://homeownerverification-573852472812.asia-southeast1.run.app
  * 
- * Version: 2025-03-09 16:30
+ * Version: 2025-03-21
  */
 
 // Log version info to console to verify which version is loaded
-console.log("Homeowner.js loaded - Version: 2025-03-09 16:30 - Fixed OTP submit button and added loading animation");
+console.log("Homeowner.js loaded - Version: 2025-03-21 - Enhanced OTP verification process and form handling");
 
 // API base URL
 const API_BASE_URL = "https://homeownerverification-573852472812.asia-southeast1.run.app";
@@ -276,9 +276,6 @@ async function verifyOTP() {
             })
         });
         
-        // Hide loading animation
-        document.querySelector('#regis_loading').classList.add('hidden');
-        
         console.log("OTP verification status:", resp.status);
         
         // Handle response based on HTTP status code
@@ -294,10 +291,14 @@ async function verifyOTP() {
             }
             
             console.log("OTP verification successful (200 OK), refreshing page to enter verified path");
-            // Refresh the page to enter the verified path
+            // Don't hide the loading animation on success to maintain consistent UX
+            // Just reload the page immediately
             window.location.reload();
             return;
         }
+        
+        // If we get here, it's not a success, so hide loading
+        document.querySelector('#regis_loading').classList.add('hidden');
         
         // For other status codes, try to log the JSON response if possible
         let errorData = null;
@@ -404,27 +405,46 @@ document.addEventListener("DOMContentLoaded", async () => {
         verifyPhone();
     });
     
-    // Fix for submit-otp button
+    // Enhanced submit-otp button handler with additional protection
     const otpButton = document.querySelector("#submit-otp");
     if (otpButton) {
         otpButton.addEventListener("click", (e) => {
             e.preventDefault(); // Prevent the default link behavior
+            e.stopPropagation(); // Prevent event bubbling
             console.log("OTP submit button clicked");
             verifyOTP();
+            return false; // Extra insurance against form submission
         });
-        console.log("OTP submit event listener added successfully");
+        console.log("OTP submit event listener added with enhanced protection");
     } else {
         console.error("OTP submit button not found in DOM");
-        
-        // Try adding event listener directly to the form as a fallback
-        const otpForm = document.querySelector('#submit-otp-form form');
-        if (otpForm) {
-            otpForm.addEventListener("submit", (e) => {
+    }
+    
+    // Add direct form handler regardless of button presence
+    const otpForm = document.querySelector('#submit-otp-form');
+    if (otpForm) {
+        otpForm.addEventListener("submit", (e) => {
+            e.preventDefault(); // Critical to prevent normal form submission
+            e.stopPropagation(); // Prevent event bubbling
+            console.log("OTP form submitted via form submit event");
+            verifyOTP();
+            return false; // Extra insurance against form submission
+        });
+        console.log("OTP form submit event listener added with enhanced protection");
+    }
+    
+    // Add input handler to submit on Enter key
+    const otpInput = document.querySelector("#regis_otp");
+    if (otpInput) {
+        otpInput.addEventListener("keyup", (e) => {
+            if (e.key === "Enter") {
                 e.preventDefault();
-                console.log("OTP form submitted");
+                console.log("Enter key pressed in OTP input");
                 verifyOTP();
-            });
-            console.log("OTP form submit event listener added as fallback");
-        }
+            }
+        });
+        console.log("OTP input keyup event listener added");
+    } else {
+        console.log("OTP input field not found in DOM");
     }
 });
