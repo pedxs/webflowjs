@@ -118,6 +118,8 @@ pages.page6.addEventListener("submit", async (e) => {
 
   // Convert FormData to query string
   const queryString = new URLSearchParams(formData).toString();
+  console.log("Query string:", queryString);
+  console.log("Query string length:", queryString.length);
   const appscript = `https://script.google.com/macros/s/AKfycbw_N4YW6uVhG2ox5FQPH84zx5ydOtN343xtap1eV3W2zjmiJGUT8gc7uO_AeoUKH84L/exec`;
 
   // Immediate UI update
