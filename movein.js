@@ -23,7 +23,13 @@ let warningShown = false; // Tracks whether the consent warning has already been
 
 const parseBase64Url = (token) => {
   // Parses a base64-encoded URL token into a JSON object
-  return JSON.parse(decodeURIComponent(window.atob(token)));
+  // แปลง Base64url กลับเป็น Base64
+  let base64 = token.replace(/-/g, '+').replace(/_/g, '/');
+  // เพิ่ม padding ถ้าจำเป็น
+  while (base64.length % 4) {
+      base64 += '=';
+  }
+  return JSON.parse(decodeURIComponent(window.atob(base64)));
 };
 
 const navHandler = (curPage, nextOrPrevPage, btn, questions) => {
