@@ -7,12 +7,26 @@
  * Requires the LIFF SDK to be included in the HTML:
  * <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
  * 
- * Production Version - Uses LIFF ID 1657411915-nDO8alaM for www.prinsiri.com
+ * Dynamic LIFF ID selection based on domain:
+ * - Production (www.prinsiri.com): 1657411915-nDO8alaM
+ * - Test domain (prinsiri.webflow.io): 1657411915-p7MDBJBd
  */
 
 // Global variables
-const userAgent = navigator.userAgent.toLowerCase();  
-const liffId = '1657411915-nDO8alaM'; // Production LIFF ID for www.prinsiri.com
+const userAgent = navigator.userAgent.toLowerCase();
+// Determine LIFF ID based on the current domain
+function getLiffId() {
+    const hostname = window.location.hostname;
+    if (hostname === 'www.prinsiri.com') {
+        return '1657411915-nDO8alaM'; // Production LIFF ID
+    }
+    if (hostname === 'prinsiri.webflow.io') {
+        return '1657411915-p7MDBJBd'; // Test domain LIFF ID
+    }
+    // Default to production LIFF ID if domain is not recognized
+    return '1657411915-nDO8alaM';
+}
+const liffId = getLiffId();
 let param = window.location.search;  
 let urlParam = new URLSearchParams(param); // Defined once at the top
 let lineEmail = ''; // Global variable to store LINE email
