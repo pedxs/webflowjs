@@ -368,7 +368,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             
             // User is verified, redirect to survey
             obj = {
-                CommonFeeId: data.commonfee,
+                CommonFeeId: data.commonfee_id,
                 ProjectName: data.project,
                 HouseNumber: data.housenumber,
                 PhoneNumber: data.userphone,
