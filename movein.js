@@ -23,7 +23,13 @@ let warningShown = false; // Tracks whether the consent warning has already been
 
 const parseBase64Url = (token) => {
   // Parses a base64-encoded URL token into a JSON object
-  return JSON.parse(decodeURIComponent(window.atob(token)));
+  // แปลง Base64url กลับเป็น Base64
+  let base64 = token.replace(/-/g, '+').replace(/_/g, '/');
+  // เพิ่ม padding ถ้าจำเป็น
+  while (base64.length % 4) {
+      base64 += '=';
+  }
+  return JSON.parse(decodeURIComponent(window.atob(base64)));
 };
 
 const navHandler = (curPage, nextOrPrevPage, btn, questions) => {
@@ -118,6 +124,8 @@ pages.page6.addEventListener("submit", async (e) => {
 
   // Convert FormData to query string
   const queryString = new URLSearchParams(formData).toString();
+  console.log("Query string:", queryString);
+  console.log("Query string length:", queryString.length);
   const appscript = `https://script.google.com/macros/s/AKfycbw_N4YW6uVhG2ox5FQPH84zx5ydOtN343xtap1eV3W2zjmiJGUT8gc7uO_AeoUKH84L/exec`;
 
   // Immediate UI update

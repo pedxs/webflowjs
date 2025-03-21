@@ -141,7 +141,12 @@ async function verifyProfile(LineUserId, Linename, Linemail) {
  * Encode object to base64url format
  */
 const base64url = (source) => {
-    return btoa(encodeURIComponent(JSON.stringify(source)));
+    let encoded = btoa(encodeURIComponent(JSON.stringify(source)));
+    // แปลงเป็น Base64url
+    return encoded
+        .replace(/\+/g, '-')  // แทนที่ + ด้วย -
+        .replace(/\//g, '_')  // แทนที่ / ด้วย _
+        .replace(/=+$/, '');  // ลบ padding =
 };
 
 /**
@@ -369,7 +374,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             
             // User is verified, redirect to survey
             obj = {
-                CommonFeeId: data.commonfee,
+                CommonFeeId: data.commonfee_id,
                 ProjectName: data.project,
                 HouseNumber: data.housenumber,
                 PhoneNumber: data.userphone,
