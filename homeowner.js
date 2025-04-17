@@ -365,26 +365,17 @@ document.addEventListener("DOMContentLoaded", async () => {
         // Check if user verification was successful (200 OK response)
         if (profileResponse.status === 200) {
             isVerified = true;
-            data = profileResponse.data; // Store the response data
-            
-            // User is verified, redirect to survey
-            obj = {
-                CommonFeeId: data.commonfee,
-                ProjectName: data.project,
-                HouseNumber: data.housenumber,
-                PhoneNumber: data.userphone,
-                authorize: data.authorize,
-                lineUserId: LineUserId,
-                total1: data.total1,
-                total2: data.total2,
-                suffix: data.suffix,
-                customerId: data.customerId,
-                projectCode: data.projectCode,
-                billerId: data.billerId
-            };
-            redirectToSurvey(obj);
+            // Build transfer payload from API response data
+            const fullResponse = profileResponse.data;
+            // The backend wraps fields inside a 'data' object
+            const apiData = fullResponse.data || fullResponse;
+            // Include LINE user ID for downstream pages
+            const payload = { ...apiData, lineUserId: LineUserId };
+            // Redirect with full payload
+            redirectToSurvey(payload);
+            return;
         } else {
-            // User not found (204) or other error
+            // User not found (204) or other error: show phone entry form
             document.querySelector('#regis_loading').classList.add('hidden');
             document.querySelector('#submit-phone-form').classList.remove('hidden');
         }
