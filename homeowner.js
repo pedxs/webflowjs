@@ -364,14 +364,23 @@ document.addEventListener("DOMContentLoaded", async () => {
         
         // Check if user verification was successful (200 OK response)
         if (profileResponse.status === 200) {
-            isVerified = true;
-            // Build transfer payload from API response data
+            // User is verified: construct payload with exact required keys
             const fullResponse = profileResponse.data;
-            // The backend wraps fields inside a 'data' object
             const apiData = fullResponse.data || fullResponse;
-            // Include LINE user ID for downstream pages
-            const payload = { ...apiData, lineUserId: LineUserId };
-            // Redirect with full payload
+            const payload = {
+                CommonFeeId: apiData.commonfee_id || null,
+                ProjectName: apiData.project_name__c || null,
+                HouseNumber: apiData.house_number__c || null,
+                PhoneNumber: apiData.mobilephone__c || null,
+                authorize: apiData.authorize != null ? apiData.authorize : null,
+                lineUserId: LineUserId,
+                total1: apiData.last_overdue_value__c != null ? apiData.last_overdue_value__c : null,
+                total2: apiData.now_overdue_value__c != null ? apiData.now_overdue_value__c : null,
+                suffix: apiData.suffix_code__c || null,
+                customerId: apiData.customer_id__c || null,
+                projectCode: apiData.project_code__c || null,
+                billerId: apiData.biller_id__c || null
+            };
             redirectToSurvey(payload);
             return;
         } else {
