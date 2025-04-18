@@ -364,27 +364,27 @@ document.addEventListener("DOMContentLoaded", async () => {
         
         // Check if user verification was successful (200 OK response)
         if (profileResponse.status === 200) {
-            isVerified = true;
-            data = profileResponse.data; // Store the response data
-            
-            // User is verified, redirect to survey
-            obj = {
-                CommonFeeId: data.commonfee,
-                ProjectName: data.project,
-                HouseNumber: data.housenumber,
-                PhoneNumber: data.userphone,
-                authorize: data.authorize,
+            // User is verified: construct payload with exact required keys
+            const fullResponse = profileResponse.data;
+            const apiData = fullResponse.data || fullResponse;
+            const payload = {
+                CommonFeeId: apiData.commonfee_id || null,
+                ProjectName: apiData.project_name__c || null,
+                HouseNumber: apiData.house_number__c || null,
+                PhoneNumber: apiData.mobilephone__c || null,
+                authorize: apiData.authorize != null ? apiData.authorize : null,
                 lineUserId: LineUserId,
-                total1: data.total1,
-                total2: data.total2,
-                suffix: data.suffix,
-                customerId: data.customerId,
-                projectCode: data.projectCode,
-                billerId: data.billerId
+                total1: apiData.last_overdue_value__c != null ? apiData.last_overdue_value__c : null,
+                total2: apiData.now_overdue_value__c != null ? apiData.now_overdue_value__c : null,
+                suffix: apiData.suffix_code__c || null,
+                customerId: apiData.customer_id__c || null,
+                projectCode: apiData.project_code__c || null,
+                billerId: apiData.biller_id__c || null
             };
-            redirectToSurvey(obj);
+            redirectToSurvey(payload);
+            return;
         } else {
-            // User not found (204) or other error
+            // User not found (204) or other error: show phone entry form
             document.querySelector('#regis_loading').classList.add('hidden');
             document.querySelector('#submit-phone-form').classList.remove('hidden');
         }
